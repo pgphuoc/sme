@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SME Super App Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .mobile-screen {
+            max-width: 420px;
+            height: 85vh;
+            max-height: 900px;
+            margin: 2.5vh auto;
+            background: #F8F7F4;
+            border-radius: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 8px solid #333;
+        }
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            background-color: #F8F7F4;
+        }
+        .screen.active {
+            display: flex;
+        }
+        .status-bar {
+            height: 30px;
+            background-color: #333;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            background-color: #ffffff;
+            border-top: 1px solid #e5e7eb;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .nav-item.active {
+            color: #4A90E2;
+        }
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+        }
+        .btn-primary {
+            background-color: #4A90E2;
+            color: white;
+            font-weight: 600;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #3b73b5;
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="mobile-screen">
+    <div class="status-bar">
+        <span id="time-display">9:41</span>
+        <div>
+            <span class="mr-1">📶</span>
+            <span>🔋</span>
+        </div>
+    </div>
+
+    <!-- Màn hình Đăng nhập -->
+    <div id="login-screen" class="screen active">
+        <div class="content flex flex-col justify-center">
+            <h1 class="text-3xl font-bold text-center text-blue-800 mb-2">Super App</h1>
+            <p class="text-center text-gray-500 mb-10">Giải pháp cho Doanh nghiệp SMEs</p>
+            <div class="space-y-4">
+                <input type="email" placeholder="Email" class="input-field" value="admin@congty.com">
+                <input type="password" placeholder="Mật khẩu" class="input-field" value="123456">
+                <button id="login-btn" class="btn-primary w-full">Đăng nhập</button>
+            </div>
+            <div class="text-center mt-6">
+                <a href="#" class="text-sm text-blue-600">Quên mật khẩu?</a>
+            </div>
+            <div class="text-center mt-12">
+                <span class="text-sm text-gray-500">Chưa có tài khoản? </span>
+                <a href="#" id="go-to-signup" class="text-sm font-semibold text-blue-600">Đăng ký ngay</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Màn hình Đăng ký -->
+    <div id="signup-screen" class="screen">
+        <div class="content">
+            <button class="navigate-back mb-6" data-target="login-screen">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <h2 class="text-2xl font-bold mb-6">Tạo tài khoản Doanh nghiệp</h2>
+            <div class="space-y-4">
+                <input type="text" placeholder="Tên công ty" class="input-field">
+                <input type="text" placeholder="Họ và tên Admin" class="input-field">
+                <input type="email" placeholder="Email" class="input-field">
+                <input type="password" placeholder="Mật khẩu" class="input-field">
+                <input type="password" placeholder="Xác nhận mật khẩu" class="input-field">
+                <button id="signup-btn" class="btn-primary w-full mt-4">Đăng ký</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Màn hình Chọn Gói -->
+    <div id="plan-screen" class="screen">
+        <div class="content">
+             <h2 class="text-2xl font-bold text-center mb-6">Chọn Gói Dịch Vụ</h2>
+             <p class="text-center text-gray-500 mb-8">Bắt đầu với gói Basic miễn phí hoặc chọn gói phù hợp với quy mô của bạn.</p>
+             <div class="space-y-4">
+                <div class="border-2 border-blue-500 p-4 rounded-lg cursor-pointer" data-plan="basic">
+                    <h3 class="font-bold text-lg">Gói Basic</h3>
+                    <p class="font-bold text-blue-600">Miễn phí</p>
+                    <p class="text-sm text-gray-600">&lt;= 10 người dùng</p>
+                </div>
+                <div class="border p-4 rounded-lg cursor-pointer" data-plan="standard">
+                    <h3 class="font-bold text-lg">Gói Standard</h3>
+                    <p class="font-bold">100.000đ / tháng</p>
+                    <p class="text-sm text-gray-600">&lt;= 20 người dùng</p>
+                </div>
+                <div class="border p-4 rounded-lg cursor-pointer" data-plan="plus">
+                    <h3 class="font-bold text-lg">Gói Plus</h3>
+                    <p class="font-bold">200.000đ / tháng</p>
+                    <p class="text-sm text-gray-600">&lt;= 30 người dùng</p>
+                </div>
+                <div class="border p-4 rounded-lg cursor-pointer" data-plan="premium">
+                    <h3 class="font-bold text-lg">Gói Premium</h3>
+                    <p class="font-bold">300.000đ / tháng</p>
+                    <p class="text-sm text-gray-600">&lt;= 50 người dùng</p>
+                </div>
+                 <button id="confirm-plan-btn" class="btn-primary w-full mt-4">Bắt đầu sử dụng</button>
+             </div>
+        </div>
+    </div>
+
+    <!-- Khung chính ứng dụng sau khi đăng nhập -->
+    <div id="main-app-container" class="screen">
+        <div class="flex flex-col h-full w-full">
+            <!-- Header -->
+            <header class="p-4 bg-white border-b flex items-center justify-between">
+                <h2 id="page-title" class="text-lg font-bold">Trang chủ</h2>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+            </header>
+            
+            <!-- Nội dung Tab -->
+            <main class="flex-1 overflow-y-auto bg-gray-50">
+                <div id="home-tab" class="tab-content active p-4">
+                    <h3 class="font-semibold mb-4">Các Mini App của bạn</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm">
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                            <span class="text-xs font-medium text-center">Chấm công</span>
+                        </div>
+                         <div class="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm">
+                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                            </div>
+                            <span class="text-xs font-medium text-center">Cài đặt mới</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="users-tab" class="tab-content hidden p-4">
+                    <button id="go-to-invite" class="btn-primary w-full mb-4">Mời nhân viên</button>
+                    <div class="bg-white rounded-lg shadow-sm">
+                         <ul class="divide-y divide-gray-200">
+                             <li class="p-4 flex items-center justify-between">
+                                 <div class="flex items-center">
+                                     <img class="h-10 w-10 rounded-full mr-3" src="https://placehold.co/100x100/E2E8F0/333333?text=AV" alt="">
+                                     <div>
+                                         <p class="font-semibold">Lê Văn An</p>
+                                         <p class="text-sm text-gray-500">an.le@congty.com</p>
+                                     </div>
+                                 </div>
+                                 <span class="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">Hoạt động</span>
+                             </li>
+                             <li class="p-4 flex items-center justify-between">
+                                 <div class="flex items-center">
+                                     <img class="h-10 w-10 rounded-full mr-3" src="https://placehold.co/100x100/E2E8F0/333333?text=BC" alt="">
+                                     <div>
+                                         <p class="font-semibold">Trần Thị Bích</p>
+                                         <p class="text-sm text-gray-500">bich.tran@congty.com</p>
+                                     </div>
+                                 </div>
+                                 <span class="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">Hoạt động</span>
+                             </li>
+                              <li class="p-4 flex items-center justify-between">
+                                 <div class="flex items-center">
+                                     <img class="h-10 w-10 rounded-full mr-3" src="https://placehold.co/100x100/E2E8F0/333333?text=CD" alt="">
+                                     <div>
+                                         <p class="font-semibold">Phạm Văn Cường</p>
+                                         <p class="text-sm text-gray-500">cuong.pham@congty.com</p>
+                                     </div>
+                                 </div>
+                                 <span class="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">Chờ kích hoạt</span>
+                             </li>
+                         </ul>
+                    </div>
+                </div>
+
+                <div id="settings-tab" class="tab-content hidden p-4">
+                    <ul class="bg-white rounded-lg shadow-sm divide-y">
+                        <li id="go-to-tracking-settings" class="p-4 flex justify-between items-center cursor-pointer"><span>Cài đặt Chấm công</span><span>></span></li>
+                        <li class="p-4 flex justify-between items-center cursor-pointer"><span>Quản lý Gói dịch vụ</span><span>></span></li>
+                        <li class="p-4 flex justify-between items-center cursor-pointer"><span>Thông tin Công ty</span><span>></span></li>
+                        <li class="p-4 flex justify-between items-center cursor-pointer text-red-500"><span>Đăng xuất</span><span>></span></li>
+                    </ul>
+                </div>
+            </main>
+            
+            <!-- Bottom Nav -->
+            <nav class="bottom-nav">
+                <div class="nav-item active" data-tab="home-tab" data-title="Trang chủ">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                    <span class="text-xs">Trang chủ</span>
+                </div>
+                <div class="nav-item" data-tab="users-tab" data-title="Nhân viên">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                    <span class="text-xs">Nhân viên</span>
+                </div>
+                <div class="nav-item" data-tab="settings-tab" data-title="Cài đặt">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+                    <span class="text-xs">Cài đặt</span>
+                </div>
+            </nav>
+        </div>
+    </div>
+    
+    <!-- Màn hình Mời Nhân viên -->
+    <div id="invite-screen" class="screen">
+        <header class="p-4 bg-white border-b flex items-center">
+            <button class="navigate-back" data-target="main-app-container" data-tab="users-tab">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <h2 class="text-lg font-bold ml-4">Mời nhân viên</h2>
+        </header>
+        <div class="content">
+            <label class="font-semibold text-sm mb-2 block">Nhập email (cách nhau bởi dấu ;)</label>
+            <textarea class="input-field w-full" rows="5" placeholder="nhanvien1@congty.com; nhanvien2@congty.com"></textarea>
+            <p class="text-center my-4 text-gray-500">hoặc</p>
+            <button class="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500">
+                Tải lên file Excel
+            </button>
+            <button class="btn-primary w-full mt-6">Gửi lời mời</button>
+        </div>
+    </div>
+    
+     <!-- Màn hình Cài đặt chấm công -->
+    <div id="tracking-settings-screen" class="screen">
+        <header class="p-4 bg-white border-b flex items-center">
+            <button class="navigate-back" data-target="main-app-container" data-tab="settings-tab">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <h2 class="text-lg font-bold ml-4">Cài đặt Chấm công</h2>
+        </header>
+        <div class="content space-y-6">
+            <div class="bg-white p-4 rounded-lg shadow-sm">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold">Chấm công qua GPS</h3>
+                        <p class="text-sm text-gray-500">Yêu cầu nhân viên ở đúng vị trí</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" value="" class="sr-only peer" checked>
+                      <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+            </div>
+             <div class="bg-white p-4 rounded-lg shadow-sm">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold">Chấm công qua Wifi</h3>
+                        <p class="text-sm text-gray-500">Yêu cầu kết nối đúng mạng Wifi</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" value="" class="sr-only peer">
+                      <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+            </div>
+            <button class="btn-primary w-full mt-6">Lưu cài đặt</button>
+        </div>
+    </div>
+
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const screens = document.querySelectorAll('.screen');
+    const pageTitle = document.getElementById('page-title');
+
+    function navigateTo(screenId) {
+        screens.forEach(s => s.classList.remove('active'));
+        const targetScreen = document.getElementById(screenId);
+        if (targetScreen) {
+            targetScreen.classList.add('active');
+        }
+    }
+    
+    document.getElementById('go-to-signup').addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateTo('signup-screen');
+    });
+
+    document.getElementById('signup-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateTo('plan-screen');
+    });
+    
+    document.getElementById('login-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateTo('main-app-container');
+        document.querySelector('.nav-item[data-tab="home-tab"]').click();
+    });
+    
+    document.getElementById('confirm-plan-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        navigateTo('main-app-container');
+        document.querySelector('.nav-item[data-tab="home-tab"]').click();
+    });
+
+    document.querySelectorAll('.navigate-back').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetScreenId = button.dataset.target;
+            navigateTo(targetScreenId);
+            if (button.dataset.tab) {
+                document.querySelector(`.nav-item[data-tab="${button.dataset.tab}"]`).click();
+            }
+        });
+    });
+    
+    const navItems = document.querySelectorAll('.nav-item');
+    const tabContents = document.querySelectorAll('.tab-content');
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            navItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            
+            pageTitle.textContent = item.dataset.title;
+
+            tabContents.forEach(content => {
+                if (content.id === item.dataset.tab) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+        });
+    });
+
+    document.getElementById('go-to-invite').addEventListener('click', () => navigateTo('invite-screen'));
+    document.getElementById('go-to-tracking-settings').addEventListener('click', () => navigateTo('tracking-settings-screen'));
+
+    function updateTime() {
+        const time = new Date();
+        document.getElementById('time-display').textContent = time.getHours() + ':' + String(time.getMinutes()).padStart(2, '0');
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+});
+</script>
+
+</body>
+</html>
