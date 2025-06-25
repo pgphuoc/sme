@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo Tương tác - Dự án Super App cho SMEs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chosen Palette: Warm Neutral Harmony -->
+    <!-- Application Structure Plan: A single-page dashboard with a fixed sidebar navigation. This structure allows users to quickly jump between key sections of the BRD (Overview, Scope, Workflows, Business Model, Risks) without linear scrolling. This non-linear exploration is ideal for stakeholders who may want to focus on specific areas. Key interactions include toggling in/out of scope features, switching between visual workflow diagrams, and exploring an interactive chart for subscription plans, making the dense BRD content more digestible and engaging. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Project Objectives -> Goal: Inform -> Viz: Themed cards -> Interaction: Hover effects -> Justification: More engaging than a bulleted list. -> Method: HTML/Tailwind.
+        - Report Info: Scope (In/Out) -> Goal: Organize/Compare -> Viz: Toggle buttons & feature cards -> Interaction: Click to switch views -> Justification: Provides clear separation and focus. -> Method: HTML/Tailwind + JS.
+        - Report Info: User Workflows -> Goal: Explain Process -> Viz: HTML/CSS flow diagrams -> Interaction: Click buttons to display corresponding flow -> Justification: Visualizing processes is far more intuitive than reading text-based steps. -> Method: HTML/Tailwind + JS.
+        - Report Info: Subscription Tiers -> Goal: Compare -> Viz: Bar Chart & Price Cards -> Interaction: Hover on chart for details -> Justification: A chart offers an instant visual comparison of each plan's value vs. cost. -> Method: Chart.js (Canvas).
+        - Report Info: Risks -> Goal: Inform/Alert -> Viz: Color-coded HTML Table -> Interaction: Hover highlight -> Justification: Improves readability and provides quick visual cues for severity. -> Method: HTML/Tailwind.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #F8F7F4;
+            color: #3D3D3D;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+        .nav-link.active {
+            background-color: #EAE8E2;
+            border-left-color: #4A90E2;
+            color: #2c5282;
+            font-weight: 600;
+        }
+        .nav-link:hover {
+            background-color: #EAE8E2;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .card {
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background-color: #4A90E2;
+            color: white;
+        }
+        .flow-step {
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            flex: 1;
+            min-width: 150px;
+        }
+        .flow-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #9ca3af;
+            margin: 0 1rem;
+        }
+         .chart-container {
+            position: relative;
+            margin: auto;
+            height: 40vh;
+            width: 100%;
+            max-width: 800px;
+        }
+    </style>
+</head>
+<body class="flex h-screen">
+
+    <aside class="w-64 bg-white shadow-md flex-shrink-0">
+        <div class="p-6">
+            <h1 class="text-xl font-bold text-blue-800">Dự án Super App</h1>
+            <p class="text-sm text-gray-500">Báo cáo Yêu cầu Nghiệp vụ</p>
+        </div>
+        <nav id="main-nav" class="mt-4 flex flex-col">
+            <a href="#overview" class="nav-link active py-3 px-6 text-gray-700">
+                <span class="mr-3">📊</span> Tổng quan
+            </a>
+            <a href="#scope" class="nav-link py-3 px-6 text-gray-700">
+                <span class="mr-3">🎯</span> Phạm vi Dự án
+            </a>
+            <a href="#workflows" class="nav-link py-3 px-6 text-gray-700">
+                <span class="mr-3">⚙️</span> Quy trình Nghiệp vụ
+            </a>
+            <a href="#monetization" class="nav-link py-3 px-6 text-gray-700">
+                <span class="mr-3">💰</span> Mô hình Kinh doanh
+            </a>
+            <a href="#risks" class="nav-link py-3 px-6 text-gray-700">
+                <span class="mr-3">⚠️</span> Rủi ro & Thách thức
+            </a>
+        </nav>
+        <div class="absolute bottom-0 w-64 p-4 text-center text-xs text-gray-400">
+            <p>Tài liệu được tạo ngày 25/06/2025</p>
+            <p>Phiên bản 1.1</p>
+        </div>
+    </aside>
+
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12">
+
+        <div id="overview" class="content-section active">
+            <h2 class="text-3xl font-bold mb-4">Tổng quan Dự án</h2>
+            <p class="mb-8 text-gray-600">
+                Phần này cung cấp một cái nhìn toàn cảnh về dự án, bao gồm bối cảnh ra đời, các mục tiêu kinh doanh chiến lược và mục tiêu cụ thể mà dự án cần đạt được. Đây là nền tảng để hiểu rõ "tại sao" dự án này lại quan trọng.
+            </p>
+
+            <div class="card p-6 mb-8">
+                <h3 class="text-xl font-semibold mb-3">Bối cảnh Kinh doanh</h3>
+                <p>Trong bối cảnh chuyển đổi số mạnh mẽ, các doanh nghiệp vừa và nhỏ (SMEs) tại Việt Nam đang đối mặt với thách thức trong việc quản lý vận hành, nhân sự và tối ưu hóa quy trình làm việc. Việc sử dụng nhiều phần mềm, ứng dụng riêng lẻ gây ra tình trạng phân mảnh dữ liệu, tốn kém chi phí và khó khăn trong việc quản lý tập trung. Dự án xây dựng một "Super App" (Siêu ứng dụng) ra đời nhằm cung cấp một nền tảng hợp nhất, giúp doanh nghiệp tiết kiệm chi phí, quản lý tập trung và nâng cao hiệu quả hoạt động.</p>
+            </div>
+
+            <h3 class="text-2xl font-semibold mb-4">Mục tiêu chính</h3>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="card p-6">
+                    <h4 class="font-bold text-lg mb-2">Tối ưu hóa Vận hành</h4>
+                    <p class="text-sm text-gray-600">Cung cấp một nền tảng duy nhất để quản lý các hoạt động cốt lõi, giảm sự phụ thuộc vào nhiều hệ thống rời rạc.</p>
+                </div>
+                <div class="card p-6">
+                    <h4 class="font-bold text-lg mb-2">Tăng cường Hiệu quả</h4>
+                    <p class="text-sm text-gray-600">Giúp chủ doanh nghiệp dễ dàng theo dõi, quản lý nhân viên và các hoạt động khác qua một ứng dụng di động duy nhất.</p>
+                </div>
+                <div class="card p-6">
+                    <h4 class="font-bold text-lg mb-2">Linh hoạt & Mở rộng</h4>
+                    <p class="text-sm text-gray-600">Cho phép doanh nghiệp tùy chọn cài đặt các tính năng (mini app) phù hợp với quy mô và dễ dàng mở rộng khi cần.</p>
+                </div>
+                <div class="card p-6">
+                    <h4 class="font-bold text-lg mb-2">Tạo Nguồn thu</h4>
+                    <p class="text-sm text-gray-600">Xây dựng mô hình kinh doanh bền vững thông qua việc cung cấp các gói dịch vụ trả phí theo tháng (subscription).</p>
+                </div>
+                 <div class="card p-6">
+                    <h4 class="font-bold text-lg mb-2">Ra mắt Phiên bản 1.0</h4>
+                    <p class="text-sm text-gray-600">Phát triển và phát hành ứng dụng trên cả iOS và Android với các luồng nghiệp vụ cốt lõi.</p>
+                </div>
+                 <div class="card p-6">
+                    <h4 class="font-bold text-lg mb-2">Kiến trúc Vững chắc</h4>
+                    <p class="text-sm text-gray-600">Xây dựng thành công kiến trúc Multi-tenant an toàn, bảo mật và sẵn sàng để tích hợp các Mini App mới trong tương lai.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="scope" class="content-section">
+            <h2 class="text-3xl font-bold mb-4">Phạm vi Dự án</h2>
+            <p class="mb-8 text-gray-600">
+                Phần này định nghĩa rõ ràng những gì sẽ được xây dựng và những gì sẽ không nằm trong giai đoạn đầu của dự án. Việc xác định phạm vi giúp đội ngũ tập trung nguồn lực và đảm bảo tất cả các bên liên quan có cùng một kỳ vọng về sản phẩm cuối cùng.
+            </p>
+
+            <div class="flex justify-center mb-6">
+                <div class="bg-gray-200 rounded-full p-1 flex">
+                    <button class="tab-button active px-6 py-2 rounded-full font-semibold" data-tab="in-scope">Trong Phạm Vi</button>
+                    <button class="tab-button px-6 py-2 rounded-full font-semibold" data-tab="out-of-scope">Ngoài Phạm Vi</button>
+                </div>
+            </div>
+
+            <div id="in-scope-content" class="tab-content">
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="card p-6">
+                        <h4 class="font-bold text-lg mb-2">F01: Quản lý Tenant</h4>
+                        <p class="text-sm text-gray-600">Cho phép chủ doanh nghiệp đăng ký, tạo ra một không gian làm việc (tenant) riêng biệt và an toàn cho công ty.</p>
+                    </div>
+                    <div class="card p-6">
+                        <h4 class="font-bold text-lg mb-2">F02: Xác thực & Đăng nhập</h4>
+                        <p class="text-sm text-gray-600">Hệ thống đăng nhập an toàn, phân quyền rõ ràng giữa vai trò Quản trị (Admin) và Nhân viên.</p>
+                    </div>
+                    <div class="card p-6">
+                        <h4 class="font-bold text-lg mb-2">F03: Quản lý Người dùng</h4>
+                        <p class="text-sm text-gray-600">Admin có thể mời, kích hoạt và quản lý tài khoản của nhân viên trong công ty một cách dễ dàng.</p>
+                    </div>
+                    <div class="card p-6">
+                        <h4 class="font-bold text-lg mb-2">F04: Cấu hình Chấm công</h4>
+                        <p class="text-sm text-gray-600">Cung cấp các tùy chọn chấm công linh hoạt thông qua định vị GPS hoặc mạng Wifi nội bộ của công ty.</p>
+                    </div>
+                    <div class="card p-6">
+                        <h4 class="font-bold text-lg mb-2">F05: Nền tảng Super App</h4>
+                        <p class="text-sm text-gray-600">Xây dựng kiến trúc nền tảng, sẵn sàng cho việc cài đặt/gỡ bỏ các Mini App. Giai đoạn 1 ra mắt Mini App "Chấm công".</p>
+                    </div>
+                     <div class="card p-6">
+                        <h4 class="font-bold text-lg mb-2">F06: Quản lý Gói dịch vụ</h4>
+                        <p class="text-sm text-gray-600">Cho phép Admin lựa chọn, xem và nâng cấp các gói dịch vụ. Hệ thống sẽ giới hạn tính năng dựa trên gói đã chọn.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="out-of-scope-content" class="tab-content" style="display: none;">
+                <ul class="list-disc list-inside space-y-2 bg-white p-6 rounded-lg shadow">
+                    <li>Các Mini App khác ngoài "Chấm công" (VD: Quản lý dự án, CRM, HRM...).</li>
+                    <li>Phiên bản Web-app cho người dùng cuối (Nhân viên).</li>
+                    <li>Tích hợp cổng thanh toán tự động (Giai đoạn 1 xử lý thủ công).</li>
+                    <li>Tự động xuất hóa đơn điện tử.</li>
+                    <li>Tính năng báo cáo, thống kê và phân tích chi tiết.</li>
+                    <li>Tùy chỉnh giao diện (theme) cho từng doanh nghiệp.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="workflows" class="content-section">
+            <h2 class="text-3xl font-bold mb-4">Quy trình Nghiệp vụ</h2>
+            <p class="mb-8 text-gray-600">
+                Hiểu rõ cách người dùng tương tác với hệ thống là vô cùng quan trọng. Phần này trực quan hóa các luồng nghiệp vụ chính, từ việc một chủ doanh nghiệp đăng ký tài khoản mới cho đến khi mời một nhân viên vào hệ thống.
+            </p>
+            
+            <div class="flex justify-center mb-6 space-x-4">
+                <button class="workflow-button bg-blue-500 text-white px-6 py-2 rounded-full font-semibold shadow-md" data-workflow="flow1">Luồng Đăng ký Doanh nghiệp</button>
+                <button class="workflow-button bg-gray-300 text-gray-700 px-6 py-2 rounded-full font-semibold" data-workflow="flow2">Luồng Mời Nhân viên</button>
+            </div>
+
+            <div id="flow1" class="workflow-content card p-6">
+                <h3 class="text-xl font-semibold mb-6 text-center">Luồng 1: Đăng ký Doanh nghiệp và Chọn Gói</h3>
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0">
+                    <div class="flow-step"><strong>1. Đăng ký</strong><p class="text-xs">Người dùng điền thông tin công ty & admin.</p></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step"><strong>2. Tạo Tenant</strong><p class="text-xs">Hệ thống tạo Tenant & Tài khoản Admin.</p></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step"><strong>3. Chọn Gói</strong><p class="text-xs">Chuyển đến màn hình chọn gói, mặc định là Basic.</p></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step"><strong>4. Xác thực</strong><p class="text-xs">Gửi email xác thực. Người dùng xác nhận.</p></div>
+                    <div class="flow-arrow">→</div>
+                     <div class="flow-step"><strong>5. Hoàn tất</strong><p class="text-xs">Đăng nhập và bắt đầu sử dụng.</p></div>
+                </div>
+            </div>
+            
+            <div id="flow2" class="workflow-content card p-6" style="display: none;">
+                <h3 class="text-xl font-semibold mb-6 text-center">Luồng 2: Mời và Kích hoạt Tài khoản Nhân viên</h3>
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0">
+                    <div class="flow-step"><strong>1. Mời</strong><p class="text-xs">Admin nhập email nhân viên và gửi lời mời.</p></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step"><strong>2. Gửi Email</strong><p class="text-xs">Hệ thống gửi email chứa link kích hoạt.</p></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step"><strong>3. Kích hoạt</strong><p class="text-xs">Nhân viên nhận email, nhấn link và tạo mật khẩu.</p></div>
+                    <div class="flow-arrow">→</div>
+                    <div class="flow-step"><strong>4. Cập nhật</strong><p class="text-xs">Tài khoản nhân viên được kích hoạt trong hệ thống.</p></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="monetization" class="content-section">
+            <h2 class="text-3xl font-bold mb-4">Mô hình Kinh doanh & Gói dịch vụ</h2>
+            <p class="mb-8 text-gray-600">
+                Sản phẩm được xây dựng với mô hình kinh doanh Freemium, cho phép người dùng bắt đầu miễn phí và nâng cấp khi có nhu cầu. Phần này trình bày chi tiết các gói dịch vụ, giúp so sánh quyền lợi và chi phí một cách trực quan để người dùng có thể lựa chọn phương án phù hợp nhất cho doanh nghiệp của mình.
+            </p>
+
+            <div class="card p-6 mb-8">
+                <h3 class="text-xl font-semibold mb-3 text-center">So sánh các Gói dịch vụ</h3>
+                 <div class="chart-container">
+                    <canvas id="subscriptionChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="card p-6 border-t-4 border-gray-400">
+                    <h4 class="font-bold text-lg">Gói Basic</h4>
+                    <p class="text-2xl font-bold my-2">Miễn phí</p>
+                    <p class="text-sm font-semibold text-gray-600">&lt;= 10 người dùng</p>
+                    <p class="text-xs mt-2">Phù hợp cho các đội nhóm nhỏ, startup mới thành lập.</p>
+                </div>
+                <div class="card p-6 border-t-4 border-blue-400">
+                    <h4 class="font-bold text-lg">Gói Standard</h4>
+                    <p class="text-2xl font-bold my-2">100K <span class="text-sm font-normal">/ tháng</span></p>
+                    <p class="text-sm font-semibold text-gray-600">&lt;= 20 người dùng</p>
+                     <p class="text-xs mt-2">Lý tưởng cho các doanh nghiệp nhỏ cần quản lý chặt chẽ.</p>
+                </div>
+                <div class="card p-6 border-t-4 border-green-400 ring-2 ring-green-400">
+                    <span class="absolute top-0 right-4 -mt-3 bg-green-400 text-white text-xs font-bold px-3 py-1 rounded-full">Phổ biến</span>
+                    <h4 class="font-bold text-lg">Gói Plus</h4>
+                    <p class="text-2xl font-bold my-2">200K <span class="text-sm font-normal">/ tháng</span></p>
+                    <p class="text-sm font-semibold text-gray-600">&lt;= 30 người dùng</p>
+                     <p class="text-xs mt-2">Dành cho các doanh nghiệp có quy mô vừa và nhỏ.</p>
+                </div>
+                 <div class="card p-6 border-t-4 border-purple-400">
+                    <h4 class="font-bold text-lg">Gói Premium</h4>
+                    <p class="text-2xl font-bold my-2">300K <span class="text-sm font-normal">/ tháng</span></p>
+                    <p class="text-sm font-semibold text-gray-600">&lt;= 50 người dùng</p>
+                     <p class="text-xs mt-2">Cho doanh nghiệp có quy mô nhân sự đáng kể.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="risks" class="content-section">
+            <h2 class="text-3xl font-bold mb-4">Rủi ro & Thách thức</h2>
+            <p class="mb-8 text-gray-600">
+               Mọi dự án đều có những rủi ro tiềm ẩn. Việc xác định và đánh giá chúng từ sớm giúp chúng ta chủ động xây dựng các phương án phòng ngừa, đảm bảo dự án đi đúng hướng và giảm thiểu các tác động tiêu cực có thể xảy ra.
+            </p>
+            <div class="card overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+                        <tr>
+                            <th class="p-4">Mô tả Rủi ro</th>
+                            <th class="p-4 text-center">Mức độ Ảnh hưởng</th>
+                            <th class="p-4 text-center">Khả năng Xảy ra</th>
+                            <th class="p-4">Giải pháp Giảm thiểu</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-4 font-medium">Lộ/lọt dữ liệu giữa các tenant.</td>
+                            <td class="p-4 text-center"><span class="px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">Rất cao</span></td>
+                            <td class="p-4 text-center"><span class="px-2 py-1 text-xs font-semibold text-yellow-800 bg-yellow-100 rounded-full">Thấp</span></td>
+                            <td class="p-4">Thiết kế và kiểm thử kiến trúc multi-tenant cẩn thận. Thực hiện penetration test.</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-4 font-medium">Người dùng không chấp nhận sản phẩm.</td>
+                            <td class="p-4 text-center"><span class="px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">Cao</span></td>
+                            <td class="p-4 text-center"><span class="px-2 py-1 text-xs font-semibold text-orange-800 bg-orange-100 rounded-full">Trung bình</span></td>
+                            <td class="p-4">Nghiên cứu kỹ lưỡng nhu cầu người dùng. Ra mắt phiên bản MVP để thu thập phản hồi sớm. Marketing hiệu quả.</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-4 font-medium">Hiệu năng ứng dụng kém khi có nhiều người dùng.</td>
+                            <td class="p-4 text-center"><span class="px-2 py-1 text-xs font-semibold text-red-800 bg-red-100 rounded-full">Cao</span></td>
+                            <td class="p-4 text-center"><span class="px-2 py-1 text-xs font-semibold text-orange-800 bg-orange-100 rounded-full">Trung bình</span></td>
+                            <td class="p-4">Tối ưu hóa database query, sử dụng caching, thực hiện load test.</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="p-4 font-medium">Trễ tiến độ dự án.</td>
+                            <td class="p-4 text-center"><span class="px-2 py-1 text-xs font-semibold text-orange-800 bg-orange-100 rounded-full">Trung bình</span></td>
+                            <td class="p-4 text-center"><span class="px-2 py-1 text-xs font-semibold text-orange-800 bg-orange-100 rounded-full">Trung bình</span></td>
+                            <td class="p-4">Lập kế hoạch chi tiết, áp dụng mô hình Agile/Scrum để quản lý linh hoạt, theo dõi tiến độ sát sao.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('#main-nav a');
+            const contentSections = document.querySelectorAll('.content-section');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    contentSections.forEach(s => s.classList.remove('active'));
+
+                    this.classList.add('active');
+                    const activeSection = document.querySelector(this.getAttribute('href'));
+                    if (activeSection) {
+                        activeSection.classList.add('active');
+                    }
+                });
+            });
+
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const tabId = this.dataset.tab;
+                    tabContents.forEach(content => {
+                        if (content.id === `${tabId}-content`) {
+                            content.style.display = 'block';
+                        } else {
+                            content.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            const workflowButtons = document.querySelectorAll('.workflow-button');
+            const workflowContents = document.querySelectorAll('.workflow-content');
+            workflowButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    workflowButtons.forEach(btn => {
+                        btn.classList.remove('bg-blue-500', 'text-white');
+                        btn.classList.add('bg-gray-300', 'text-gray-700');
+                    });
+                    this.classList.add('bg-blue-500', 'text-white');
+                    this.classList.remove('bg-gray-300', 'text-gray-700');
+
+                    workflowContents.forEach(content => {
+                        if (content.id === this.dataset.workflow) {
+                            content.style.display = 'block';
+                        } else {
+                            content.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            const ctx = document.getElementById('subscriptionChart').getContext('2d');
+            const subscriptionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Basic', 'Standard', 'Plus', 'Premium'],
+                    datasets: [{
+                        label: 'Số người dùng tối đa',
+                        data: [10, 20, 30, 50],
+                        backgroundColor: [
+                            'rgba(156, 163, 175, 0.6)',
+                            'rgba(96, 165, 250, 0.6)',
+                            'rgba(74, 222, 128, 0.6)',
+                            'rgba(192, 132, 252, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(156, 163, 175, 1)',
+                            'rgba(96, 165, 250, 1)',
+                            'rgba(74, 222, 128, 1)',
+                            'rgba(192, 132, 252, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Số lượng người dùng'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Tên Gói Dịch Vụ'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + ' người';
+                                    }
+                                    return label;
+                                },
+                                afterLabel: function(context) {
+                                    const prices = [0, 100, 200, 300];
+                                    const price = prices[context.dataIndex];
+                                    return `Giá: ${price === 0 ? 'Miễn phí' : (price + '.000 VNĐ/tháng')}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
