@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hướng dẫn sử dụng tương tác OneXink HR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #f8f7f4;
+            color: #4a4a4a;
+        }
+        .task-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .task-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .nav-button.active {
+            background-color: #a37e63;
+            color: #ffffff;
+        }
+        .step-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 2px solid transparent; /* default border */
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .step-header:hover {
+            background-color: #f0f0f0;
+        }
+        .step-item.active .step-header {
+            border-color: #a37e63;
+            background-color: #f0f0f0;
+        }
+        .step-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+            padding-left: 1rem; /* Adjusted for better alignment with bullet points */
+        }
+        .step-item.active .step-content {
+            max-height: 1000px; /* Adjust as needed for content height */
+            padding-top: 1rem;
+        }
+        .faq-question {
+            cursor: pointer;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .placeholder-img {
+            background-color: #e0dcd5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border: 2px dashed #c4b9ad;
+            color: #7a7065;
+            margin-top: 1rem;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        /* Further styling for lists within step-content for better alignment */
+        .step-content ul.list-disc {
+            padding-left: 1.5rem; /* Standard bullet point indent */
+        }
+        .step-content ul.list-disc li {
+            margin-bottom: 0.5rem; /* Space between list items */
+        }
+        /* Workflow styling to match image_8c7ad9.png (and user's provided HTML snippet) */
+        .workflow-content {
+            background-color: #ffffff; /* White background as in the image */
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Shadow as in the image */
+        }
+        .flow-step {
+            background-color: #F8F9FA; /* Light gray from image */
+            border: 1px solid #E0E0E0; /* Light border from image */
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            min-width: 150px; /* Adjust min-width for better fit */
+            flex-grow: 1; /* Allow steps to grow */
+            box-shadow: none; /* No inner shadow */
+        }
+        .flow-step strong {
+            font-weight: 700; /* Bold text for titles */
+            color: #333; /* Darker text for titles */
+        }
+        .flow-step p {
+            font-size: 0.75rem; /* text-xs */
+            color: #666; /* Slightly darker text for description */
+        }
+        .flow-arrow {
+            font-size: 1.5rem; /* Arrow size similar to image */
+            color: #6B7280; /* Arrow color similar to image */
+            margin: 0 0.5rem; /* Margin around arrow */
+        }
+        @media (max-width: 768px) {
+            .workflow-content .flex-col {
+                flex-direction: column;
+                gap: 0.75rem; /* Adjusted gap for vertical layout */
+            }
+            .flow-arrow {
+                transform: rotate(90deg);
+                margin: 0.5rem 0;
+            }
+            .flow-step {
+                width: 90%; /* Make steps take more width on mobile */
+                max-width: 300px; /* Limit max width on mobile */
+            }
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Chosen Palette: Warm Neutrals (Background: #f8f7f4, Text: #4a4a4a, Primary Accent: #a37e63, Secondary Accent: #8c9b8d) -->
+    <!-- Application Structure Plan: The SPA is designed as a task-oriented hub. Instead of a linear document, the main page acts as a fork, directing users based on their role: "Employee" or "HR". This user-centric navigation immediately filters relevant tasks. The HR section uses a visual, interactive process flow diagram for data import, emphasizing the procedural dependencies and allowing drill-down into detailed steps via collapsible sections. The Employee section uses a simple, direct task-card approach for daily activities (attendance, leave) with expanded in-line content. This structure enhances usability by reducing cognitive load, providing a clear, interactive path to the required information, and transforming the static manual into a dynamic guide. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: HR Data Import Order. Goal: Emphasize procedural hierarchy and critical sequence. Viz: Custom HTML/CSS workflow diagram. Interaction: None, purely informational to set context. Justification: Visually communicates the critical sequence ("must be done first") more effectively than a chart for a linear process. Library: HTML/CSS (Tailwind).
+        - Report Info: Step-by-step instructions (all sections). Goal: Guide users through a process and allow progressive disclosure. Presentation: Interactive collapsible sections (HTML/Tailwind/JS). Interaction: Clicking a step header reveals/hides its detailed content. Justification: Breaks down complex processes into manageable, non-overwhelming chunks, preventing information overload while ensuring all details are accessible.
+        - Report Info: Web vs. App instructions (Employee sections). Goal: Compare instructions for different platforms. Presentation: In-line descriptive text within task cards. Interaction: None beyond initial display. Justification: Clear and concise presentation for straightforward daily tasks.
+        - Report Info: FAQ sections. Goal: Provide quick answers and reduce visual clutter. Presentation: Collapsible accordion (HTML/JS). Interaction: Clicking a question reveals the answer. Justification: Keeps the UI clean and allows users to scan questions easily, revealing answers on demand.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-[#a37e63]">Hướng dẫn Tương tác OneXink HR</h1>
+            <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">Trải nghiệm hướng dẫn sử dụng được thiết kế lại để giúp bạn nhanh chóng tìm thấy thông tin cần thiết cho vai trò của mình.</p>
+        </header>
+
+        <main>
+            <!-- Role Selection -->
+            <div id="role-selection" class="text-center mb-12">
+                <h2 class="text-2xl font-semibold mb-2 text-gray-700">Bạn là ai?</h2>
+                <p class="text-gray-500 mb-6">Chọn vai trò của bạn để xem các hướng dẫn phù hợp.</p>
+                <div class="flex justify-center gap-4 md:gap-8">
+                    <button onclick="showSection('employee-section')" class="task-card bg-white p-6 md:p-8 rounded-lg shadow-md w-48 md:w-64 text-center">
+                        <span class="text-5xl mb-4 block">👨‍💼</span>
+                        <h3 class="text-xl font-bold text-[#8c9b8d]">Nhân viên</h3>
+                    </button>
+                    <button onclick="showSection('hr-section')" class="task-card bg-white p-6 md:p-8 rounded-lg shadow-md w-48 md:w-64 text-center">
+                        <span class="text-5xl mb-4 block">📋</span>
+                        <h3 class="text-xl font-bold text-[#a37e63]">Phòng Nhân sự</h3>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Back to Home Button -->
+            <div id="back-button-container" class="text-center my-8" style="display: none;">
+                <button onclick="showSection('role-selection')" class="bg-[#a37e63] text-white font-semibold py-2 px-6 rounded-lg shadow hover:bg-opacity-90 transition-colors">
+                    &#8592; Quay lại
+                </button>
+            </div>
+
+            <!-- Employee Section -->
+            <div id="employee-section" class="content-section">
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                    <h2 class="text-3xl font-bold text-center mb-2 text-[#8c9b8d]">Hướng dẫn dành cho Nhân viên</h2>
+                    <p class="text-center text-gray-600 mb-8">Các tác vụ hàng ngày của bạn trên OneXink Web và App di động.</p>
+
+                    <div class="flex flex-col lg:flex-row gap-8">
+                        <!-- Left Panel: Navigation -->
+                        <div class="lg:w-1/3">
+                            <h3 class="text-xl font-bold mb-4">Chọn một tác vụ:</h3>
+                            <div class="flex flex-col space-y-2">
+                                <button class="nav-button text-left p-3 rounded-md hover:bg-gray-100 transition-colors active" onclick="showEmployeeContent('attendance-management', this)">
+                                    Quản lý Chấm công
+                                </button>
+                                <button class="nav-button text-left p-3 rounded-md hover:bg-gray-100 transition-colors" onclick="showEmployeeContent('leave-management', this)">
+                                    Quản lý Ngày nghỉ
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Content -->
+                        <div class="lg:w-2/3 border-l-0 lg:border-l-2 border-gray-200 lg:pl-8 pt-5">
+                            <!-- Attendance Management Content -->
+                            <div id="attendance-management" class="employee-content active">
+                                <h3 class="text-2xl font-bold text-gray-800 mb-4">Quản lý Chấm công</h3>
+                                <p class="text-gray-600 mb-6">Thực hiện check-in/out để ghi nhận thời gian làm việc hàng ngày của bạn một cách chính xác.</p>
+                                <div id="attendance-details">
+                                    <h4 class="font-semibold text-lg mb-2">Cách thực hiện Check-in/out:</h4>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <h5 class="font-bold">Trên OneXink Web:</h5>
+                                            <ul class="list-disc text-gray-600 ml-4">
+                                                <li><strong>Bước 1: Đăng nhập OneXink Web.</strong> Truy cập OneXink Web và đăng nhập bằng tài khoản cá nhân của bạn.</li>
+                                                <li><strong>Bước 2: Thực hiện Check-in/Check-out.</strong> Tại trang chủ hoặc mục <strong>"Chấm công"</strong> (Attendance) / <strong>"Thời gian làm việc"</strong> (Timesheet), tìm nút <strong>"Check-in"</strong> hoặc <strong>"Vào"</strong>. Nhấn vào để ghi nhận thời gian bắt đầu làm việc. Khi kết thúc ca làm việc, tìm nút <strong>"Check-out"</strong> hoặc <strong>"Ra"</strong>. Nhấn vào để ghi nhận thời gian kết thúc làm việc. Hệ thống có thể yêu cầu xác nhận vị trí hoặc hiển thị thông báo check-in/out thành công.</li>
+                                                <li><strong>Bước 3: Xem lịch sử chấm công.</strong> Vào mục <strong>"Lịch sử chấm công"</strong> (Attendance History) hoặc <strong>"Bảng công"</strong> (Timesheet) để xem lại các lần chấm công của mình theo ngày, tuần, tháng và kiểm tra tính chính xác của thời gian.</li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-bold">Trên OneXink App (Di động):</h5>
+                                            <ul class="list-disc text-gray-600 ml-4">
+                                                <li><strong>Bước 1: Cài đặt và Đăng nhập ứng dụng.</strong> Tải và cài đặt ứng dụng OneXink từ App Store (iOS) hoặc Google Play Store (Android). Mở ứng dụng và đăng nhập bằng tài khoản cá nhân của bạn.</li>
+                                                <li><strong>Bước 2: Thực hiện Check-in/Check-out.</strong> Trên giao diện chính của ứng dụng, thường sẽ có nút <strong>"Check-in"</strong> và <strong>"Check-out"</strong> nổi bật. Nhấn vào nút tương ứng để thực hiện chấm công. Ứng dụng có thể yêu cầu bật dịch vụ định vị (GPS) để xác minh vị trí chấm công. Đảm bảo bạn có kết nối Internet khi thực hiện chấm công qua ứng dụng.</li>
+                                                <li><strong>Bước 3: Xem lịch sử chấm công.</strong> Truy cập mục lịch sử chấm công trong ứng dụng để xem lại thông tin.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                    <h4 class="font-semibold text-lg mb-2">Câu hỏi thường gặp (FAQ):</h4>
+                                    <div class="faq-item border-t pt-2">
+                                        <p class="faq-question font-semibold flex justify-between items-center">Nếu tôi quên check-in/out thì sao? <span>&#9662;</span></p>
+                                        <p class="faq-answer text-gray-600 pl-4">Trong trường hợp quên chấm công, bạn cần lập tức liên hệ Bộ phận Nhân sự (HR) để báo cáo và yêu cầu điều chỉnh công. Hãy tuân thủ quy trình điều chỉnh công của công ty (nếu có) để đảm bảo dữ liệu chấm công của bạn được cập nhật chính xác.</p>
+                                    </div>
+                                    <div class="faq-item border-t pt-2">
+                                        <p class="faq-question font-semibold flex justify-between items-center">Hệ thống có hỗ trợ chấm công khi làm việc từ xa không? <span>&#9662;</span></p>
+                                        <p class="faq-answer text-gray-600 pl-4">Có, nếu OneXink được cấu hình để hỗ trợ làm việc từ xa, bạn có thể check-in/out từ bất kỳ đâu, đôi khi có thể yêu cầu bật GPS để xác định vị trí.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Leave Management Content -->
+                            <div id="leave-management" class="employee-content pt-5">
+                                <h3 class="text-2xl font-semibold text-gray-800 mb-4">Quản lý Ngày nghỉ</h3>
+                                <p class="text-gray-600 mb-6">Gửi yêu cầu nghỉ phép và theo dõi tình trạng phê duyệt một cách dễ dàng.</p>
+                                <div id="leave-details">
+                                    <h4 class="font-semibold text-lg mb-2">Cách tạo yêu cầu nghỉ phép:</h4>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <h5 class="font-bold">Trên OneXink Web:</h5>
+                                            <ul class="list-disc text-gray-600 ml-4">
+                                                <li><strong>Bước 1: Đăng nhập OneXink Web.</strong> Truy cập OneXink Web và đăng nhập bằng tài khoản cá nhân.</li>
+                                                <li><strong>Bước 2: Tạo yêu cầu nghỉ phép mới.</strong> Tại trang chủ hoặc mục <strong>"Ngày nghỉ"</strong> (Leaves) / <strong>"Yêu cầu nghỉ phép"</strong> (Leave Requests), nhấn <strong>"Tạo mới"</strong> (Create New Request) hoặc <strong>"Gửi yêu cầu nghỉ phép"</strong> (Submit Leave Request).</li>
+                                                <li><strong>Bước 3: Điền thông tin và gửi.</strong> Điền đầy đủ thông tin yêu cầu: Loại nghỉ phép, Ngày bắt đầu và ngày kết thúc nghỉ, Tổng số ngày nghỉ, Lý do nghỉ phép (càng chi tiết càng tốt), Đính kèm tài liệu (nếu có). Kiểm tra lại thông tin và nhấn <strong>"Gửi"</strong> (Submit) để gửi yêu cầu.</li>
+                                                <li><strong>Bước 4: Theo dõi và Hủy yêu cầu (nếu cần).</strong> Sau khi gửi, yêu cầu sẽ được chuyển đến cấp quản lý hoặc HR để phê duyệt. Bạn có thể xem trạng thái yêu cầu (Đã gửi, Đang chờ duyệt, Đã duyệt, Từ chối) trong mục <strong>"Ngày nghỉ"</strong>. Nếu muốn hủy một yêu cầu đã gửi (chưa được duyệt), tìm yêu cầu đó và chọn <strong>"Hủy"</strong> (Cancel) hoặc <strong>"Thu hồi"</strong> (Withdraw).</li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            <h5 class="font-bold">Trên OneXink App (Di động):</h5>
+                                            <ul class="list-disc text-gray-600 ml-4">
+                                                <li><strong>Bước 1: Mở và Đăng nhập ứng dụng.</strong> Đăng nhập vào ứng dụng OneXink trên điện thoại.</li>
+                                                <li><strong>Bước 2: Tạo yêu cầu nghỉ phép mới.</strong> Tìm đến mục <strong>"Ngày nghỉ"</strong> (Leaves) hoặc biểu tượng tương tự, nhấn vào nút <strong>"Tạo yêu cầu mới"</strong> (Create New Request) hoặc dấu "+".</li>
+                                                <li><strong>Bước 3: Điền thông tin và gửi.</strong> Điền thông tin yêu cầu nghỉ phép tương tự như trên bản Web và gửi yêu cầu.</li>
+                                                <li><strong>Bước 4: Theo dõi trạng thái yêu cầu.</strong> Trong mục Ngày nghỉ của ứng dụng, bạn có thể xem danh sách các yêu cầu và trạng thái của chúng, nhận thông báo khi yêu cầu được phê duyệt hoặc từ chối.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                    <h4 class="font-semibold text-lg mb-2">Câu hỏi thường gặp (FAQ):</h4>
+                                    <div class="faq-item border-t pt-2">
+                                        <p class="faq-question font-semibold flex justify-between items-center">Tôi có thể xem số ngày phép còn lại ở đâu?<span>&#9662;</span></p>
+                                        <p class="faq-answer text-gray-600 pl-4">Thông tin về số ngày phép còn lại thường hiển thị trong mục "Ngày nghỉ" hoặc "Thông tin cá nhân" trên cả OneXink Web và App.</p>
+                                    </div>
+                                    <div class="faq-item border-t pt-2">
+                                        <p class="faq-question font-semibold flex justify-between items-center">Nếu yêu cầu nghỉ phép của tôi bị từ chối, tôi có thể gửi lại không?<span>&#9662;</span></p>
+                                        <p class="faq-answer text-gray-600 pl-4">Có, bạn có thể sửa đổi yêu cầu và gửi lại hoặc liên hệ trực tiếp với người quản lý/HR để hiểu rõ lý do và tìm giải pháp.</p>
+                                    </div>
+                                    <div class="faq-item border-t pt-2">
+                                        <p class="faq-question font-semibold flex justify-between items-center">Ai là người phê duyệt yêu cầu nghỉ phép của tôi?<span>&#9662;</span></p>
+                                        <p class="faq-answer text-gray-600 pl-4">Thông thường, yêu cầu nghỉ phép sẽ được gửi đến quản lý trực tiếp của bạn để phê duyệt, sau đó có thể cần HR xác nhận lần cuối.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HR Section -->
+            <div id="hr-section" class="content-section">
+                <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+                    <h2 class="text-3xl font-bold text-center mb-2 text-[#a37e63]">Hướng dẫn dành cho Phòng Nhân sự</h2>
+                    <p class="text-center text-gray-600 mb-8">Quy trình thiết lập hệ thống và quản lý các nghiệp vụ Nhân sự cốt lõi.</p>
+
+                    <div class="flex flex-col lg:flex-row gap-8">
+                        <!-- Left Panel: Navigation -->
+                        <div class="lg:w-1/3">
+                            <h3 class="text-xl font-bold mb-4">Chọn một tác vụ:</h3>
+                             <div class="flex flex-col space-y-2">
+                                <button class="nav-button text-left p-3 rounded-md hover:bg-gray-100 transition-colors active" onclick="showHrContent('data-import', this)">
+                                    Quy trình Import Dữ liệu ban đầu
+                                </button>
+                                <button class="nav-button text-left p-3 rounded-md hover:bg-gray-100 transition-colors" onclick="showHrContent('recruitment', this)">
+                                    Quản lý Tuyển dụng
+                                </button>
+                             </div>
+                        </div>
+
+                        <!-- Right Panel: Content -->
+                        <div class="lg:w-2/3 border-l-0 lg:border-l-2 border-gray-200 lg:pl-8 pt-5">
+                            <!-- Data Import Content -->
+                            <div id="data-import" class="hr-content active">
+                                <h3 class="text-2xl font-bold mb-2">Quy trình Import Dữ liệu ban đầu</h3>
+                                <p class="mb-6 text-gray-600">Đây là quy trình bắt buộc để thiết lập dữ liệu nền tảng cho hệ thống. Vui lòng thực hiện theo đúng thứ tự ưu tiên để đảm bảo tính toàn vẹn của dữ liệu.</p>
+                                
+                                <div id="flow-import-data" class="workflow-content card p-6">
+                                    <h3 class="text-xl font-semibold mb-6 text-center">Workflow: Khởi tạo thông tin ban đầu</h3>
+                                    <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0">
+                                        <div class="flow-step">
+                                            <strong>1. Import Danh mục</strong>
+                                            <p class="text-xs">Cập nhật danh sách vị trí công việc và loại hình việc làm.</p>
+                                        </div>
+                                        <div class="flow-arrow">&#9654;</div>
+                                        <div class="flow-step">
+                                            <strong>2. Import Phòng ban</strong>
+                                            <p class="text-xs">Thiết lập cấu trúc phòng ban của công ty.</p>
+                                        </div>
+                                        <div class="flow-arrow">&#9654;</div>
+                                        <div class="flow-step">
+                                            <strong>3. Import Tài khoản</strong>
+                                            <p class="text-xs">Cấp phát tài khoản đăng nhập cho nhân viên trên OneXinK.</p>
+                                        </div>
+                                        <div class="flow-arrow">&#9654;</div>
+                                        <div class="flow-step">
+                                            <strong>4. Import Nhân sự</strong>
+                                            <p class="text-xs">Cập nhật thông tin chi tiết của tất cả nhân viên.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="import-steps" class="space-y-4">
+                                     <!-- Step 1: Import Danh mục -->
+                                     <div class="step-item border-2 border-gray-300 rounded-lg">
+                                        <div class="step-header flex items-start gap-4" onclick="toggleStepContent(this)">
+                                            <div class="flex-shrink-0 w-8 h-8 bg-[#a37e63] text-white rounded-full flex items-center justify-center font-bold">1</div>
+                                            <div class="flex-grow">
+                                                <h4 class="font-bold text-lg">Import Danh mục (Vị trí công việc & Loại việc làm)</h4>
+                                                <p class="text-gray-600 text-sm">Cập nhật danh sách vị trí công việc và loại hình việc làm.</p>
+                                            </div>
+                                        </div>
+                                        <div class="step-content px-4 py-2">
+                                            <h5 class="font-bold mt-2 mb-2">1.1. Import Vị trí công việc (Job Titles)</h5>
+                                            <ul class="list-disc text-gray-600 ml-4 space-y-1">
+                                                <li><strong>Bước 1: Chuẩn bị dữ liệu nguồn.</strong> Đảm bảo bạn có file Excel theo đúng định dạng Template <code>[01.Category_Chức danh]</code>. File này cần chứa các thông tin chính xác về tên vị trí công việc cần import.
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">📄</span><p>File Excel mẫu <code>[01.Category_Chức danh]</code></p></div></li>
+                                                <li><strong>Bước 2: Truy cập OneXink.</strong> Đăng nhập vào hệ thống OneXink. Chọn phân hệ <strong>"Nhân sự"</strong> (Human Resources) > <strong>"Cấu hình"</strong> (Configuration) > <strong>"Vị trí công việc"</strong> (Job Positions).
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">➡️</span><p>Menu điều hướng đến Vị trí công việc</p></div></li>
+                                                <li><strong>Bước 3: Thực hiện Import.</strong> Tại giao diện Vị trí công việc, nhấn vào nút <strong>"Import"</strong>. Chọn <strong>"Tải lên tệp"</strong> (Load File) và tải lên file Excel đã chuẩn bị. Hệ thống sẽ tự động ánh xạ các cột. Kiểm tra kỹ để đảm bảo ánh xạ đúng. Nhấn <strong>"Kiểm tra"</strong> (Test) và <strong>"Import"</strong> để hoàn tất.
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">⬆️</span><p>Giao diện Import Vị trí công việc</p></div></li>
+                                            </ul>
+                                            <h5 class="font-bold mt-4 mb-2">1.2. Import Loại việc làm (Employment Types / Job Status)</h5>
+                                            <ul class="list-disc text-gray-600 ml-4 space-y-1">
+                                                <li><strong>Bước 1: Chuẩn bị dữ liệu nguồn.</strong> Đảm bảo bạn có file Excel theo đúng định dạng Template <code>[02.Category_EmploymentTypes]</code>.
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">📄</span><p>File Excel mẫu <code>[02.Category_EmploymentTypes]</code></p></div></li>
+                                                <li><strong>Bước 2: Truy cập OneXink.</strong> Đăng nhập vào hệ thống OneXink. Chọn phân hệ <strong>"Nhân sự"</strong> (Human Resources) > <strong>"Cấu hình"</strong> (Configuration) > <strong>"Loại việc làm"</strong> (Employment Types).
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">➡️</span><p>Menu điều hướng đến Loại việc làm</p></div></li>
+                                                <li><strong>Bước 3: Thực hiện Import.</strong> Tương tự như Import Vị trí công việc (các bước tải file, ánh xạ và xác nhận).
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">⬆️</span><p>Giao diện Import Loại việc làm</p></div></li>
+                                            </ul>
+                                             <div class="mt-6">
+                                                <h4 class="font-semibold text-lg mb-2">Câu hỏi thường gặp (FAQ):</h4>
+                                                <div class="faq-item border-t pt-2">
+                                                    <p class="faq-question font-semibold flex justify-between items-center">Tôi có thể import nhiều vị trí/loại việc làm cùng lúc không? <span>&#9662;</span></p>
+                                                    <p class="faq-answer text-gray-600 pl-4">Có, bạn có thể import danh sách nhiều vị trí công việc hoặc loại hình việc làm cùng lúc thông qua file Excel.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                     <!-- Step 2: Import Danh sách Phòng ban -->
+                                     <div class="step-item border-2 border-gray-300 rounded-lg">
+                                        <div class="step-header flex items-start gap-4" onclick="toggleStepContent(this)">
+                                            <div class="flex-shrink-0 w-8 h-8 bg-[#a37e63] text-white rounded-full flex items-center justify-center font-bold">2</div>
+                                            <div class="flex-grow">
+                                                <h4 class="font-bold text-lg">Import Danh sách Phòng ban</h4>
+                                                <p class="text-gray-600 text-sm">Thiết lập cấu trúc phòng ban của công ty.</p>
+                                            </div>
+                                        </div>
+                                        <div class="step-content px-4 py-2">
+                                            <ul class="list-disc text-gray-600 ml-4 space-y-1">
+                                                <li><strong>Bước 1: Chuẩn bị dữ liệu nguồn.</strong> Đảm bảo bạn có file Excel theo đúng định dạng Template <code>[10.HR_Phòng Ban]</code>. File này cần chứa các thông tin về tên phòng ban, và nếu có cấu trúc phân cấp, cần có cột thể hiện phòng ban cha.
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">📄</span><p>File Excel mẫu <code>[10.HR_Phòng Ban]</code></p></div></li>
+                                                <li><strong>Bước 2: Truy cập OneXink.</strong> Đăng nhập vào hệ thống OneXink. Chọn phân hệ <strong>"Nhân sự"</strong> (Human Resources) > <strong>"Cấu hình"</strong> (Configuration) > <strong>"Phòng ban"</strong> (Departments).
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">➡️</span><p>Menu điều hướng đến Phòng ban</p></div></li>
+                                                <li><strong>Bước 3: Thực hiện Import.</strong> Tại giao diện Phòng ban, nhấn vào nút <strong>"Import"</strong>. Chọn <strong>"Tải lên tệp"</strong> (Load File) và tải lên file Excel đã chuẩn bị. Hệ thống sẽ tự động ánh xạ các cột. Kiểm tra kỹ để đảm bảo ánh xạ đúng. Nhấn <strong>"Kiểm tra"</strong> (Test) và <strong>"Import"</strong> để hoàn tất.
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">⬆️</span><p>Giao diện Import Phòng ban</p></div></li>
+                                            </ul>
+                                            <div class="mt-6">
+                                                <h4 class="font-semibold text-lg mb-2">Câu hỏi thường gặp (FAQ):</h4>
+                                                <div class="faq-item border-t pt-2">
+                                                    <p class="faq-question font-semibold flex justify-between items-center">Tôi có thể thêm phòng ban con không? <span>&#9662;</span></p>
+                                                    <p class="faq-answer text-gray-600 pl-4">Có, OneXink cho phép thiết lập cấu trúc phòng ban theo dạng cây (parent-child). Đảm bảo file Excel của bạn có cột thể hiện mối quan hệ này (ví dụ: cột "Parent Department").</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Step 3: Import Danh sách Tài khoản -->
+                                     <div class="step-item border-2 border-gray-300 rounded-lg">
+                                        <div class="step-header flex items-start gap-4" onclick="toggleStepContent(this)">
+                                            <div class="flex-shrink-0 w-8 h-8 bg-[#a37e63] text-white rounded-full flex items-center justify-center font-bold">3</div>
+                                            <div class="flex-grow">
+                                                <h4 class="font-bold text-lg">Import Danh sách Tài khoản OneXink</h4>
+                                                <p class="text-gray-600 text-sm">Cấp phát tài khoản đăng nhập cho nhân viên.</p>
+                                            </div>
+                                        </div>
+                                        <div class="step-content px-4 py-2">
+                                            <ul class="list-disc text-gray-600 ml-4 space-y-1">
+                                                <li><strong>Bước 1: Chuẩn bị dữ liệu nguồn.</strong> Đảm bảo bạn có file Excel theo đúng định dạng Template <code>[11.HR_Tài Khoản]</code>. File này cần chứa thông tin tài khoản như email, tên đăng nhập, mật khẩu tạm thời (nếu có).
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">📄</span><p>File Excel mẫu <code>[11.HR_Tài Khoản]</code></p></div></li>
+                                                <li><strong>Bước 2: Truy cập OneXink và thực hiện Import/Tạo tài khoản.</strong> Đăng nhập vào hệ thống OneXink. Thực hiện import hoặc tạo tài khoản trực tiếp trên nền tảng OneXink theo hướng dẫn của hệ thống đó, thường nằm trong mục quản lý người dùng hoặc tài khoản.
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">👤</span><p>Giao diện quản lý người dùng/tài khoản trên OneXink</p></div></li>
+                                            </ul>
+                                            <div class="mt-6">
+                                                <h4 class="font-semibold text-lg mb-2">Câu hỏi thường gặp (FAQ):</h4>
+                                                <div class="faq-item border-t pt-2">
+                                                    <p class="faq-question font-semibold flex justify-between items-center">Nhân viên có thể tự thay đổi mật khẩu sau khi được cấp tài khoản không? <span>&#9662;</span></p>
+                                                    <p class="faq-answer text-gray-600 pl-4">Có, nhân viên nên được hướng dẫn cách thay đổi mật khẩu lần đầu đăng nhập để đảm bảo bảo mật.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                     <!-- Step 4: Import Danh sách Nhân sự -->
+                                     <div class="step-item border-2 border-gray-300 rounded-lg">
+                                        <div class="step-header flex items-start gap-4" onclick="toggleStepContent(this)">
+                                            <div class="flex-shrink-0 w-8 h-8 bg-[#a37e63] text-white rounded-full flex items-center justify-center font-bold">4</div>
+                                            <div class="flex-grow">
+                                                <h4 class="font-bold text-lg">Import Danh sách Nhân sự</h4>
+                                                <p class="text-gray-600 text-sm">Cập nhật thông tin chi tiết của tất cả nhân viên. Đây là bước cuối cùng sau khi đã có đầy đủ dữ liệu nền.</p>
+                                            </div>
+                                        </div>
+                                        <div class="step-content px-4 py-2">
+                                            <ul class="list-disc text-gray-600 ml-4 space-y-1">
+                                                <li><strong>Bước 1: Chuẩn bị dữ liệu nguồn.</strong> Đảm bảo bạn có file Excel theo đúng định dạng Template <code>[12.HR_Nhân Viên]</code>. File này chứa đầy đủ thông tin của nhân viên (Tên, mã nhân viên, phòng ban, vị trí công việc, email, v.v.).
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">📄</span><p>File Excel mẫu <code>[12.HR_Nhân Viên]</code></p></div></li>
+                                                <li><strong>Bước 2: Truy cập OneXink.</strong> Đăng nhập vào hệ thống OneXink. Chọn phân hệ <strong>"Nhân sự"</strong> (Human Resources) > <strong>"Nhân viên"</strong> (Employees).
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">➡️</span><p>Menu điều hướng đến Nhân viên</p></div></li>
+                                                <li><strong>Bước 3: Thực hiện Import.</strong> Tại giao diện Nhân viên, nhấn vào nút <strong>"Import"</strong>. Chọn <strong>"Tải lên tệp"</strong> (Load File) và tải lên file Excel đã chuẩn bị. Hệ thống sẽ tự động ánh xạ các cột. <strong>Đặc biệt lưu ý kiểm tra ánh xạ của các trường liên quan như Phòng ban, Vị trí công việc, Loại việc làm phải đúng với dữ liệu đã được import ở các bước trước. Đây là bước cực kỳ quan trọng để đảm bảo tính toàn vẹn và chính xác của dữ liệu nhân viên.</strong> Nhấn <strong>"Kiểm tra"</strong> (Test) và <strong>"Import"</strong> để hoàn tất.
+                                                <div class="placeholder-img h-24 text-sm"><span class="text-3xl">⬆️</span><p>Giao diện Import Nhân viên</p></div></li>
+                                            </ul>
+                                            <div class="mt-6">
+                                                <h4 class="font-semibold text-lg mb-2">Câu hỏi thường gặp (FAQ):</h4>
+                                                <div class="faq-item border-t pt-2">
+                                                    <p class="faq-question font-semibold flex justify-between items-center">Tôi có cần import thông tin phòng ban, vị trí công việc trước khi import danh sách nhân sự không? <span>&#9662;</span></p>
+                                                    <p class="faq-answer text-gray-600 pl-4">Có, việc import các danh mục cơ bản như <strong>Vị trí công việc, Loại việc làm, và Phòng ban là bắt buộc phải được thực hiện trước</strong> khi import danh sách nhân sự. Nếu không tuân thủ thứ tự này, hệ thống OneXink sẽ không thể ánh xạ dữ liệu chính xác và sẽ phát sinh lỗi trong quá trình nhập liệu nhân viên.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Recruitment Content -->
+                            <div id="recruitment" class="hr-content">
+                                <h3 class="text-2xl font-bold mb-2 pt-5">Quản lý Tuyển dụng</h3>
+                                <p class="mb-6 text-gray-600">Theo dõi toàn bộ quy trình tuyển dụng, từ đăng tin đến quản lý hồ sơ ứng viên trên OneXink Web.</p>
+                                <div class="space-y-4">
+                                    <div>
+                                        <h4 class="font-semibold text-lg">1. Tạo vị trí tuyển dụng mới:</h4>
+                                        <ul class="list-disc text-gray-600 ml-4 space-y-1">
+                                            <li><strong>Bước 1: Đăng nhập OneXink.</strong> Truy cập OneXink Web và đăng nhập bằng tài khoản HR.
+                                            <div class="placeholder-img h-24 text-sm"><span class="text-3xl">➡️</span><p>Màn hình đăng nhập OneXink Web</p></div></li>
+                                            <li><strong>Bước 2: Tạo vị trí tuyển dụng.</strong> Tìm đến mục <strong>"Tuyển dụng"</strong> (Recruitment) hoặc <strong>"Quản lý công việc"</strong> (Job Management). Nhấn <strong>"Tạo mới"</strong> (Create New Job) hoặc <strong>"Đăng tin"</strong> (Post Job).
+                                            <div class="placeholder-img h-24 text-sm"><span class="text-3xl">➕</span><p>Nút Tạo mới/Đăng tin tuyển dụng</p></div></li>
+                                            <li><strong>Bước 3: Điền thông tin.</strong> Điền đầy đủ thông tin vị trí tuyển dụng: Tên vị trí, Phòng ban, Số lượng tuyển, Mô tả công việc, Yêu cầu ứng viên, Hạn chót nộp hồ sơ, và các thông tin tùy chỉnh khác. Lưu hoặc xuất bản tin tuyển dụng.
+                                            <div class="placeholder-img h-24 text-sm"><span class="text-3xl">📝</span><p>Biểu mẫu tạo/đăng tin tuyển dụng</p></div></li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-lg">2. Quản lý hồ sơ ứng viên:</h4>
+                                        <ul class="list-disc text-gray-600 ml-4 space-y-1">
+                                            <li><strong>Bước 1: Truy cập mục Ứng viên.</strong> Sau khi tin tuyển dụng được đăng, ứng viên sẽ nộp hồ sơ. Truy cập mục <strong>"Ứng viên"</strong> (Applicants) hoặc <strong>"Quản lý hồ sơ"</strong> (Resume Management).
+                                            <div class="placeholder-img h-24 text-sm"><span class="text-3xl">📂</span><p>Danh sách Ứng viên/Quản lý hồ sơ</p></div></li>
+                                            <li><strong>Bước 2: Xem và thao tác.</strong> Xem danh sách các ứng viên, click vào từng ứng viên để xem chi tiết hồ sơ, CV. Thao tác với ứng viên: Thay đổi trạng thái (Mới, Đang xem xét, Phỏng vấn, Từ chối,...), Thêm ghi chú, lịch sử phỏng vấn, Đính kèm tài liệu liên quan.
+                                            <div class="placeholder-img h-24 text-sm"><span class="text-3xl">👀</span><p>Giao diện xem chi tiết hồ sơ ứng viên</p></div></li>
+                                        </ul>
+                                    </div>
+                                     <div>
+                                        <h4 class="font-semibold text-lg">3. Theo dõi tiến độ tuyển dụng:</h4>
+                                        <ul class="list-disc text-gray-600 ml-4 space-y-1">
+                                            <li><strong>Bước 1: Sử dụng báo cáo.</strong> Sử dụng các báo cáo hoặc biểu đồ trên OneXink để theo dõi số lượng ứng viên, thời gian tuyển dụng, hiệu quả của từng kênh tuyển dụng. Đảm bảo các trạng thái ứng viên được cập nhật chính xác để phản ánh đúng tiến độ.
+                                            <div class="placeholder-img h-24 text-sm"><span class="text-3xl">📊</span><p>Bảng điều khiển/Báo cáo tuyển dụng</p></div></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="mt-6">
+                                   <h4 class="font-semibold text-lg mb-2">Câu hỏi thường gặp (FAQ):</h4>
+                                   <div class="faq-item border-t pt-2">
+                                       <p class="faq-question font-semibold flex justify-between items-center">Tôi có thể tùy chỉnh các trạng thái tuyển dụng không?<span>&#9662;</span></p>
+                                       <p class="faq-answer text-gray-600 pl-4">Tùy thuộc vào cấu hình của OneXink, bạn có thể tùy chỉnh các giai đoạn hoặc trạng thái trong quy trình tuyển dụng để phù hợp với công ty.</p>
+                                   </div>
+                                    <div class="faq-item border-t pt-2">
+                                       <p class="faq-question font-semibold flex justify-between items-center">Làm thế nào để lọc ứng viên hiệu quả?<span>&#9662;</span></p>
+                                       <p class="faq-answer text-gray-600 pl-4">OneXink thường cung cấp các bộ lọc theo vị trí ứng tuyển, kỹ năng, trạng thái, hoặc nguồn ứng viên. Sử dụng các bộ lọc này để nhanh chóng tìm kiếm và quản lý.</p>
+                                   </div>
+                               </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- State and Navigation ---
+        let currentSection = 'role-selection';
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById('role-selection').style.display = 'none';
+            
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+            }
+
+            const backButton = document.getElementById('back-button-container');
+            if (sectionId === 'role-selection') {
+                backButton.style.display = 'none';
+            } else {
+                backButton.style.display = 'block';
+            }
+            currentSection = sectionId;
+            window.scrollTo(0, 0);
+
+            // Ensure the first HR content tab is active if HR section is shown
+            if (sectionId === 'hr-section') {
+                // Pass a reference to the actual button element for activation
+                showHrContent('data-import', document.querySelector('#hr-section .nav-button[onclick*="data-import"]'));
+            } else if (sectionId === 'employee-section') {
+                // For employee section, ensure the first content tab is active
+                showEmployeeContent('attendance-management', document.querySelector('#employee-section .nav-button[onclick*="attendance-management"]'));
+            }
+        }
+
+        function showHrContent(contentId, clickedButton) {
+            document.querySelectorAll('.hr-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(contentId).classList.add('active');
+
+            document.querySelectorAll('#hr-section .nav-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            }
+            // Scroll to the top of the newly activated content section for better UX
+            document.getElementById(contentId).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // New function for Employee section content switching
+        function showEmployeeContent(contentId, clickedButton) {
+            document.querySelectorAll('.employee-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(contentId).classList.add('active');
+
+            document.querySelectorAll('#employee-section .nav-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            }
+            // Scroll to the top of the newly activated content section for better UX
+            document.getElementById(contentId).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+
+        // --- Accordion for FAQ ---
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const answer = question.nextElementSibling;
+                const arrow = question.querySelector('span');
+                if (answer.style.maxHeight) {
+                    answer.style.maxHeight = null;
+                    arrow.style.transform = 'rotate(0deg)';
+                } else {
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                    arrow.style.transform = 'rotate(180deg)';
+                }
+            });
+        });
+
+        // --- Accordion for HR Import Steps ---
+        function toggleStepContent(headerElement) {
+            const stepItem = headerElement.closest('.step-item');
+            const content = stepItem.querySelector('.step-content');
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+                stepItem.classList.remove('active');
+            } else {
+                // Close all other open step contents in the same parent (import-steps)
+                document.querySelectorAll('.step-item.active .step-content').forEach(openContent => {
+                    openContent.style.maxHeight = null;
+                    openContent.closest('.step-item').classList.remove('active');
+                });
+                // Open current step content
+                content.style.maxHeight = content.scrollHeight + "px";
+                stepItem.classList.add('active');
+            }
+        }
+    </script>
+
+</body>
+</html>
