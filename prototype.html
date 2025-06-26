@@ -8,16 +8,31 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- LeafletJS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
     <style>
         body {
             font-family: 'Be Vietnam Pro', sans-serif;
             background-color: #f0f2f5;
         }
+        .mobile-container {
+             display: flex;
+             justify-content: center;
+             align-items: flex-start;
+             gap: 20px;
+             padding: 20px;
+             flex-wrap: wrap;
+        }
         .mobile-screen {
+            width: 100%;
             max-width: 420px;
             height: 85vh;
+            min-height: 700px;
             max-height: 900px;
-            margin: 2.5vh auto;
+            margin: 0;
             background: #F8F7F4;
             border-radius: 30px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
@@ -46,6 +61,15 @@
             padding: 0 16px;
             font-size: 12px;
             font-weight: 500;
+            flex-shrink: 0;
+        }
+        .app-header {
+             padding: 16px;
+             background-color: #ffffff;
+             border-bottom: 1px solid #e5e7eb;
+             display: flex;
+             align-items: center;
+             flex-shrink: 0;
         }
         .content {
             flex-grow: 1;
@@ -59,6 +83,7 @@
             background-color: #ffffff;
             border-top: 1px solid #e5e7eb;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            flex-shrink: 0;
         }
         .nav-item {
             display: flex;
@@ -76,17 +101,24 @@
             height: 24px;
             margin-bottom: 4px;
         }
-        .btn-primary {
-            background-color: #4A90E2;
-            color: white;
+        .btn {
             font-weight: 600;
             padding: 12px;
             border-radius: 8px;
             text-align: center;
             transition: background-color 0.2s;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #4A90E2;
+            color: white;
         }
         .btn-primary:hover {
             background-color: #3b73b5;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
         }
         .input-field {
             width: 100%;
@@ -95,10 +127,38 @@
             border-radius: 8px;
             background-color: #fff;
         }
+        .alert-box {
+            display: none;
+            padding: 10px;
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: center;
+            font-size: 14px;
+        }
+        #map-container {
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+        }
+        .map-overlay {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.9);
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
 
+<div class="mobile-container">
 <div class="mobile-screen">
     <div class="status-bar">
         <span id="time-display">9:41</span>
@@ -113,298 +173,320 @@
         <div class="content flex flex-col justify-center">
             <h1 class="text-3xl font-bold text-center text-blue-800 mb-2">Super App</h1>
             <p class="text-center text-gray-500 mb-10">Giải pháp cho Doanh nghiệp SMEs</p>
+            <div id="login-alert" class="alert-box"></div>
             <div class="space-y-4">
-                <input type="email" placeholder="Email" class="input-field" value="admin@congty.com">
-                <input type="password" placeholder="Mật khẩu" class="input-field" value="123456">
-                <button id="login-btn" class="btn-primary w-full">Đăng nhập</button>
+                <input type="email" id="login-email" placeholder="Email (vd: admin@congty.com)" class="input-field">
+                <input type="password" id="login-password" placeholder="Mật khẩu" class="input-field" value="123456">
+                <button id="login-btn" class="btn btn-primary w-full">Đăng nhập</button>
             </div>
-            <div class="text-center mt-6">
-                <a href="#" class="text-sm text-blue-600">Quên mật khẩu?</a>
-            </div>
-            <div class="text-center mt-12">
-                <span class="text-sm text-gray-500">Chưa có tài khoản? </span>
-                <a href="#" id="go-to-signup" class="text-sm font-semibold text-blue-600">Đăng ký ngay</a>
-            </div>
+            <div class="text-center mt-6"><a href="#" class="text-sm text-blue-600">Quên mật khẩu?</a></div>
+            <div class="text-center mt-12"><span class="text-sm text-gray-500">Chưa có tài khoản? </span><a href="#" class="navigate-btn text-sm font-semibold text-blue-600" data-target="signup-screen">Đăng ký ngay</a></div>
         </div>
     </div>
     
     <!-- Màn hình Đăng ký -->
-    <div id="signup-screen" class="screen">
-        <div class="content">
-            <button class="navigate-back mb-6" data-target="login-screen">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <h2 class="text-2xl font-bold mb-6">Tạo tài khoản Doanh nghiệp</h2>
-            <div class="space-y-4">
-                <input type="text" placeholder="Tên công ty" class="input-field">
-                <input type="text" placeholder="Họ và tên Admin" class="input-field">
-                <input type="email" placeholder="Email" class="input-field">
-                <input type="password" placeholder="Mật khẩu" class="input-field">
-                <input type="password" placeholder="Xác nhận mật khẩu" class="input-field">
-                <button id="signup-btn" class="btn-primary w-full mt-4">Đăng ký</button>
-            </div>
-        </div>
-    </div>
+    <div id="signup-screen" class="screen"><div class="content"><button class="navigate-btn mb-6" data-target="login-screen"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button><h2 class="text-2xl font-bold mb-6">Tạo tài khoản Doanh nghiệp</h2><div class="space-y-4"><input type="text" placeholder="Tên công ty" class="input-field"><input type="text" placeholder="Họ và tên Admin" class="input-field"><input type="email" placeholder="Email" class="input-field"><input type="password" placeholder="Mật khẩu" class="input-field"><button class="navigate-btn btn btn-primary w-full mt-4" data-target="login-screen">Đăng ký & Nhận gói Basic</button></div></div></div>
 
-    <!-- Màn hình Chọn Gói -->
-    <div id="plan-screen" class="screen">
-        <div class="content">
-             <h2 class="text-2xl font-bold text-center mb-6">Chọn Gói Dịch Vụ</h2>
-             <p class="text-center text-gray-500 mb-8">Bắt đầu với gói Basic miễn phí hoặc chọn gói phù hợp với quy mô của bạn.</p>
-             <div class="space-y-4">
-                <div class="border-2 border-blue-500 p-4 rounded-lg cursor-pointer" data-plan="basic">
-                    <h3 class="font-bold text-lg">Gói Basic</h3>
-                    <p class="font-bold text-blue-600">Miễn phí</p>
-                    <p class="text-sm text-gray-600">&lt;= 10 người dùng</p>
-                </div>
-                <div class="border p-4 rounded-lg cursor-pointer" data-plan="standard">
-                    <h3 class="font-bold text-lg">Gói Standard</h3>
-                    <p class="font-bold">100.000đ / tháng</p>
-                    <p class="text-sm text-gray-600">&lt;= 20 người dùng</p>
-                </div>
-                <div class="border p-4 rounded-lg cursor-pointer" data-plan="plus">
-                    <h3 class="font-bold text-lg">Gói Plus</h3>
-                    <p class="font-bold">200.000đ / tháng</p>
-                    <p class="text-sm text-gray-600">&lt;= 30 người dùng</p>
-                </div>
-                <div class="border p-4 rounded-lg cursor-pointer" data-plan="premium">
-                    <h3 class="font-bold text-lg">Gói Premium</h3>
-                    <p class="font-bold">300.000đ / tháng</p>
-                    <p class="text-sm text-gray-600">&lt;= 50 người dùng</p>
-                </div>
-                 <button id="confirm-plan-btn" class="btn-primary w-full mt-4">Bắt đầu sử dụng</button>
-             </div>
-        </div>
-    </div>
-
-    <!-- Khung chính ứng dụng sau khi đăng nhập -->
-    <div id="main-app-container" class="screen">
+    <!-- Khung chính ADMIN -->
+    <div id="admin-app-container" class="screen">
         <div class="flex flex-col h-full w-full">
-            <!-- Header -->
-            <header class="p-4 bg-white border-b flex items-center justify-between">
-                <h2 id="page-title" class="text-lg font-bold">Trang chủ</h2>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-            </header>
-            
-            <!-- Nội dung Tab -->
+            <header class="app-header"><h2 id="admin-page-title" class="text-lg font-bold">Trang chủ</h2></header>
             <main class="flex-1 overflow-y-auto bg-gray-50">
-                <div id="home-tab" class="tab-content active p-4">
+                <div id="admin-home-tab" class="admin-tab-content active p-4">
                     <h3 class="font-semibold mb-4">Các Mini App của bạn</h3>
                     <div class="grid grid-cols-3 gap-4">
-                        <div class="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm">
-                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </div>
-                            <span class="text-xs font-medium text-center">Chấm công</span>
+                        <div class="navigate-btn flex flex-col items-center p-4 bg-white rounded-lg shadow-sm cursor-pointer" data-target="admin-history-screen">
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11a4 4 0 100-8 4 4 0 000 8z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a4 4 0 100-8 4 4 0 000 8z" /></svg></div>
+                            <span class="text-xs font-medium text-center">Báo cáo Chấm công</span>
                         </div>
-                         <div class="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm">
-                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                            </div>
+                        <div class="navigate-btn flex flex-col items-center p-4 bg-white rounded-lg shadow-sm cursor-pointer" data-target="map-view-screen">
+                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 16.382V5.618a1 1 0 00-1.447-.894L15 7m-6 3l6-3m0 0l-6 3m-6-3l6 3" /></svg></div>
+                            <span class="text-xs font-medium text-center">Bản đồ Lộ trình</span>
+                        </div>
+                        <div class="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm">
+                            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg></div>
                             <span class="text-xs font-medium text-center">Cài đặt mới</span>
                         </div>
                     </div>
                 </div>
-
-                <div id="users-tab" class="tab-content hidden p-4">
-                    <button id="go-to-invite" class="btn-primary w-full mb-4">Mời nhân viên</button>
+                <div id="admin-users-tab" class="admin-tab-content hidden p-4">
+                    <button class="navigate-btn btn btn-primary w-full mb-4" data-target="invite-screen">Mời nhân viên</button>
                     <div class="bg-white rounded-lg shadow-sm">
                          <ul class="divide-y divide-gray-200">
-                             <li class="p-4 flex items-center justify-between">
-                                 <div class="flex items-center">
-                                     <img class="h-10 w-10 rounded-full mr-3" src="https://placehold.co/100x100/E2E8F0/333333?text=AV" alt="">
-                                     <div>
-                                         <p class="font-semibold">Lê Văn An</p>
-                                         <p class="text-sm text-gray-500">an.le@congty.com</p>
-                                     </div>
-                                 </div>
-                                 <span class="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">Hoạt động</span>
-                             </li>
-                             <li class="p-4 flex items-center justify-between">
-                                 <div class="flex items-center">
-                                     <img class="h-10 w-10 rounded-full mr-3" src="https://placehold.co/100x100/E2E8F0/333333?text=BC" alt="">
-                                     <div>
-                                         <p class="font-semibold">Trần Thị Bích</p>
-                                         <p class="text-sm text-gray-500">bich.tran@congty.com</p>
-                                     </div>
-                                 </div>
-                                 <span class="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">Hoạt động</span>
-                             </li>
-                              <li class="p-4 flex items-center justify-between">
-                                 <div class="flex items-center">
-                                     <img class="h-10 w-10 rounded-full mr-3" src="https://placehold.co/100x100/E2E8F0/333333?text=CD" alt="">
-                                     <div>
-                                         <p class="font-semibold">Phạm Văn Cường</p>
-                                         <p class="text-sm text-gray-500">cuong.pham@congty.com</p>
-                                     </div>
-                                 </div>
-                                 <span class="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">Chờ kích hoạt</span>
-                             </li>
+                             <li class="p-4 flex items-center justify-between"><div class="flex items-center"><img class="h-10 w-10 rounded-full mr-3" src="https://placehold.co/100x100/E2E8F0/333333?text=AV" alt=""><div><p class="font-semibold">Lê Văn An</p><p class="text-sm text-gray-500">an.le@congty.com</p></div></div><span class="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">Hoạt động</span></li>
+                             <li class="p-4 flex items-center justify-between"><div class="flex items-center"><img class="h-10 w-10 rounded-full mr-3" src="https://placehold.co/100x100/E2E8F0/333333?text=BC" alt=""><div><p class="font-semibold">Trần Thị Bích</p><p class="text-sm text-gray-500">bich.tran@congty.com</p></div></div><span class="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">Hoạt động</span></li>
+                             <li class="p-4 flex items-center justify-between"><div class="flex items-center"><img class="h-10 w-10 rounded-full mr-3" src="https://placehold.co/100x100/E2E8F0/333333?text=CD" alt=""><div><p class="font-semibold">Phạm Văn Cường</p><p class="text-sm text-gray-500">cuong.pham@congty.com</p></div></div><span class="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">Chờ kích hoạt</span></li>
                          </ul>
                     </div>
                 </div>
-
-                <div id="settings-tab" class="tab-content hidden p-4">
+                <div id="admin-settings-tab" class="admin-tab-content hidden p-4">
                     <ul class="bg-white rounded-lg shadow-sm divide-y">
-                        <li id="go-to-tracking-settings" class="p-4 flex justify-between items-center cursor-pointer"><span>Cài đặt Chấm công</span><span>></span></li>
-                        <li class="p-4 flex justify-between items-center cursor-pointer"><span>Quản lý Gói dịch vụ</span><span>></span></li>
+                        <li class="navigate-btn p-4 flex justify-between items-center cursor-pointer" data-target="tracking-settings-screen"><span>Cài đặt Chấm công</span><span>></span></li>
+                        <li class="navigate-btn p-4 flex justify-between items-center cursor-pointer" data-target="subscription-screen"><span>Quản lý Gói dịch vụ</span><span>></span></li>
                         <li class="p-4 flex justify-between items-center cursor-pointer"><span>Thông tin Công ty</span><span>></span></li>
-                        <li class="p-4 flex justify-between items-center cursor-pointer text-red-500"><span>Đăng xuất</span><span>></span></li>
+                        <li class="navigate-btn p-4 flex justify-between items-center cursor-pointer text-red-500" data-target="login-screen"><span>Đăng xuất</span><span>></span></li>
                     </ul>
                 </div>
             </main>
-            
-            <!-- Bottom Nav -->
-            <nav class="bottom-nav">
-                <div class="nav-item active" data-tab="home-tab" data-title="Trang chủ">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-                    <span class="text-xs">Trang chủ</span>
-                </div>
-                <div class="nav-item" data-tab="users-tab" data-title="Nhân viên">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-                    <span class="text-xs">Nhân viên</span>
-                </div>
-                <div class="nav-item" data-tab="settings-tab" data-title="Cài đặt">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
-                    <span class="text-xs">Cài đặt</span>
-                </div>
-            </nav>
+            <nav class="bottom-nav"><div class="nav-item admin-nav active" data-tab="admin-home-tab" data-title="Trang chủ"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="text-xs">Trang chủ</span></div><div class="nav-item admin-nav" data-tab="admin-users-tab" data-title="Nhân viên"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span class="text-xs">Nhân viên</span></div><div class="nav-item admin-nav" data-tab="admin-settings-tab" data-title="Cài đặt"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49 1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg><span class="text-xs">Cài đặt</span></div></nav>
         </div>
     </div>
     
-    <!-- Màn hình Mời Nhân viên -->
-    <div id="invite-screen" class="screen">
-        <header class="p-4 bg-white border-b flex items-center">
-            <button class="navigate-back" data-target="main-app-container" data-tab="users-tab">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <h2 class="text-lg font-bold ml-4">Mời nhân viên</h2>
-        </header>
+    <!-- Khung chính NHÂN VIÊN -->
+    <div id="employee-app-container" class="screen">
+        <div class="flex flex-col h-full w-full">
+            <header class="app-header"><h2 id="employee-page-title" class="text-lg font-bold">Chấm công</h2></header>
+            <main class="flex-1 overflow-y-auto bg-gray-50 p-4">
+                <div id="employee-home-tab" class="employee-tab-content active h-full flex flex-col">
+                    <div class="text-center mb-6">
+                        <p id="current-date-employee" class="text-gray-500">Thứ Năm, 26/06/2025</p>
+                        <p id="current-time-employee" class="text-5xl font-bold">09:50:12</p>
+                    </div>
+                    <button id="checkin-btn" class="btn btn-primary w-40 h-40 rounded-full flex flex-col items-center justify-center text-xl shadow-lg mx-auto mb-6">Chấm công</button>
+                    <h3 class="font-semibold text-sm mb-2">HOẠT ĐỘNG HÔM NAY</h3>
+                    <div id="today-activity-list" class="flex-1 overflow-y-auto bg-white rounded-lg p-2 space-y-2">
+                        <!-- Activity items will be added here by JS -->
+                    </div>
+                </div>
+                 <div id="employee-account-tab" class="employee-tab-content hidden p-4">
+                    <div class="text-center mb-6"><img class="h-24 w-24 rounded-full mx-auto mb-2" src="https://placehold.co/100x100/93C5FD/333333?text=LA" alt=""><h3 class="font-bold text-xl">Lê Văn An</h3><p class="text-gray-500">an.le@congty.com</p></div>
+                     <ul class="bg-white rounded-lg shadow-sm divide-y">
+                        <li class="p-4 flex justify-between items-center cursor-pointer"><span>Thông tin cá nhân</span><span>></span></li>
+                        <li class="navigate-btn p-4 flex justify-between items-center cursor-pointer" data-target="employee-history-screen"><span>Lịch sử chấm công</span><span>></span></li>
+                        <li class="p-4 flex justify-between items-center cursor-pointer"><span>Đổi mật khẩu</span><span>></span></li>
+                        <li class="navigate-btn p-4 flex justify-between items-center cursor-pointer text-red-500" data-target="login-screen"><span>Đăng xuất</span><span>></span></li>
+                    </ul>
+                </div>
+            </main>
+             <nav class="bottom-nav"><div class="nav-item employee-nav active" data-tab="employee-home-tab" data-title="Chấm công"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><span class="text-xs">Chấm công</span></div><div class="nav-item employee-nav" data-tab="employee-account-tab" data-title="Tài khoản"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span class="text-xs">Tài khoản</span></div></nav>
+        </div>
+    </div>
+    
+    <!-- Các màn hình con -->
+    <div id="invite-screen" class="screen"><header class="app-header"><button class="navigate-btn" data-target="admin-app-container" data-tab-to-show="admin-users-tab"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button><h2 class="text-lg font-bold ml-4">Mời nhân viên</h2></header><div class="content"><label class="font-semibold text-sm mb-2 block">Nhập email (cách nhau bởi dấu ;)</label><textarea class="input-field w-full" rows="5" placeholder="nhanvien1@congty.com; nhanvien2@congty.com"></textarea><p class="text-center my-4 text-gray-500">hoặc</p><button class="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500">Tải lên file Excel</button><button class="btn btn-primary w-full mt-6">Gửi lời mời</button></div></div>
+    <div id="tracking-settings-screen" class="screen"><header class="app-header"><button class="navigate-btn" data-target="admin-app-container" data-tab-to-show="admin-settings-tab"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button><h2 class="text-lg font-bold ml-4">Cài đặt Chấm công</h2></header><div class="content space-y-6"><div class="bg-white p-4 rounded-lg shadow-sm"> <div class="flex justify-between items-center mb-3"><div><h3 class="font-bold">Ghi nhận vị trí GPS</h3><p class="text-sm text-gray-500">Luôn ghi nhận vị trí khi chấm công</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" value="" class="sr-only peer" checked><div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div></label></div><div class="border-t pt-3"><h4 class="font-semibold text-sm mb-2">Vị trí hợp lệ (Tùy chọn)</h4><p class="text-xs text-gray-500 mb-2">Nếu không thêm vị trí, hệ thống chỉ ghi nhận, không báo cáo hợp lệ/không hợp lệ.</p><button class="btn btn-secondary w-full text-sm py-2">Thêm vị trí</button></div></div><div class="bg-white p-4 rounded-lg shadow-sm"><div class="flex justify-between items-center mb-3"><div><h3 class="font-bold">Yêu cầu chấm công qua Wifi</h3><p class="text-sm text-gray-500">Chỉ cho phép chấm công khi kết nối Wifi hợp lệ</p></div><label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" value="" class="sr-only peer"><div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div></label></div><div class="border-t pt-3"><h4 class="font-semibold text-sm mb-2">Wifi Hợp lệ</h4><p class="text-xs text-gray-500 mb-2">Gợi ý: <span class="font-mono bg-gray-200 px-1 rounded">VanPhong-2.4Ghz</span></p><button class="btn btn-secondary w-full text-sm py-2">Thêm Wifi</button></div></div><button class="btn btn-primary w-full mt-6">Lưu cài đặt</button></div></div>
+    <div id="subscription-screen" class="screen"><header class="app-header"><button class="navigate-btn" data-target="admin-app-container" data-tab-to-show="admin-settings-tab"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button><h2 class="text-lg font-bold ml-4">Quản lý Gói dịch vụ</h2></header><div class="content"><div class="bg-white p-6 rounded-lg shadow-sm text-center mb-6"><h3>Gói hiện tại</h3><p class="text-3xl font-bold text-blue-600 my-2">Basic</p><p class="text-gray-500">3 / 10 nhân viên</p></div><button class="navigate-btn btn btn-primary w-full" data-target="plan-selection-screen">Nâng cấp Gói</button></div></div>
+    <div id="plan-selection-screen" class="screen"><header class="app-header"><button class="navigate-btn" data-target="subscription-screen"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button><h2 class="text-lg font-bold ml-4">Chọn gói nâng cấp</h2></header><div class="content"><div class="space-y-4"><div class="border p-4 rounded-lg cursor-pointer"><h3 class="font-bold text-lg">Gói Standard</h3><p class="font-bold">100.000đ / tháng</p><p class="text-sm text-gray-600">&lt;= 20 người dùng</p></div><div class="border-2 border-blue-500 p-4 rounded-lg cursor-pointer"><h3 class="font-bold text-lg">Gói Plus</h3><p class="font-bold text-blue-600">200.000đ / tháng</p><p class="text-sm text-gray-600">&lt;= 30 người dùng</p></div><div class="border p-4 rounded-lg cursor-pointer"><h3 class="font-bold text-lg">Gói Premium</h3><p class="font-bold">300.000đ / tháng</p><p class="text-sm text-gray-600">&lt;= 50 người dùng</p></div><button class="btn btn-primary w-full mt-4">Xác nhận Nâng cấp</button></div></div></div>
+    <div id="employee-history-screen" class="screen"><header class="app-header"><button class="navigate-btn" data-target="employee-app-container" data-tab-to-show="employee-account-tab"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button><h2 class="text-lg font-bold ml-4">Lịch sử Chấm công</h2></header><div class="content"><input type="date" class="input-field mb-4" value="2025-06-26"><div class="bg-white rounded-lg shadow-sm"><ul class="divide-y divide-gray-200"><li class="p-3"><div class="flex justify-between items-center"><p class="font-semibold text-gray-800">Chấm vào</p><p class="text-sm font-bold">08:01:15</p></div><div class="flex justify-between items-center mt-1"><p class="text-xs text-gray-500">Vị trí: 123 Võ Nguyên Giáp</p><span class="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">Hợp lệ</span></div></li><li class="p-3"><div class="flex justify-between items-center"><p class="font-semibold text-gray-800">Chấm ra</p><p class="text-sm font-bold">12:05:30</p></div><div class="flex justify-between items-center mt-1"><p class="text-xs text-gray-500">Vị trí: 123 Võ Nguyên Giáp</p><span class="text-xs font-semibold text-green-600 bg-green-100 px-2 py-1 rounded-full">Hợp lệ</span></div></li><li class="p-3"><div class="flex justify-between items-center"><p class="font-semibold text-gray-800">Chấm vào</p><p class="text-sm font-bold">13:30:02</p></div><div class="flex justify-between items-center mt-1"><p class="text-xs text-gray-500">Vị trí: 456 Lê Duẩn</p><span class="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full">Ngoài VP</span></div></li></ul></div></div></div>
+    <div id="admin-history-screen" class="screen">
+        <header class="app-header"><button class="navigate-btn" data-target="admin-app-container" data-tab-to-show="admin-home-tab"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button><h2 class="text-lg font-bold ml-4">Báo cáo Chấm công</h2></header>
         <div class="content">
-            <label class="font-semibold text-sm mb-2 block">Nhập email (cách nhau bởi dấu ;)</label>
-            <textarea class="input-field w-full" rows="5" placeholder="nhanvien1@congty.com; nhanvien2@congty.com"></textarea>
-            <p class="text-center my-4 text-gray-500">hoặc</p>
-            <button class="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500">
-                Tải lên file Excel
-            </button>
-            <button class="btn-primary w-full mt-6">Gửi lời mời</button>
+            <div class="flex gap-2 mb-4"><input type="date" class="input-field" value="2025-06-26"><button id="export-excel-btn" class="btn btn-secondary flex-shrink-0">Xuất Excel</button></div>
+            <div class="mb-4 bg-white p-3 rounded-lg shadow-sm">
+                <h3 class="font-semibold text-center mb-3">Tổng hợp ngày: Lê Văn An</h3>
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="bg-blue-100 p-2 rounded-lg">
+                        <p class="text-xs text-blue-700 font-semibold">Vào/Ra</p>
+                        <p class="text-lg font-bold text-blue-800">2/2</p>
+                    </div>
+                    <div class="bg-green-100 p-2 rounded-lg">
+                        <p class="text-xs text-green-700 font-semibold">Vào đầu tiên</p>
+                        <p class="text-lg font-bold text-green-800">08:01</p>
+                    </div>
+                    <div class="bg-red-100 p-2 rounded-lg">
+                        <p class="text-xs text-red-700 font-semibold">Ra cuối cùng</p>
+                        <p class="text-lg font-bold text-red-800">17:32</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm">
+                <ul class="divide-y divide-gray-200">
+                    <li class="p-3"><div class="flex justify-between items-center"><p class="font-semibold text-gray-800">Lê Văn An</p><p class="text-sm font-bold">08:01:15</p></div><div class="flex justify-between items-center mt-1"><p class="text-xs text-gray-500">Chấm vào - Hợp lệ</p></div></li>
+                    <li class="p-3"><div class="flex justify-between items-center"><p class="font-semibold text-gray-800">Trần Thị Bích</p><p class="text-sm font-bold">08:03:45</p></div><div class="flex justify-between items-center mt-1"><p class="text-xs text-gray-500">Chấm vào - Hợp lệ</p></div></li>
+                    <li class="p-3"><div class="flex justify-between items-center"><p class="font-semibold text-gray-800">Lê Văn An</p><p class="text-sm font-bold">12:05:30</p></div><div class="flex justify-between items-center mt-1"><p class="text-xs text-gray-500">Chấm ra - Hợp lệ</p></div></li>
+                    <li class="p-3"><div class="flex justify-between items-center"><p class="font-semibold text-gray-800">Lê Văn An</p><p class="text-sm font-bold">13:30:02</p></div><div class="flex justify-between items-center mt-1"><p class="text-xs text-gray-500">Chấm vào - Ngoài VP</p></div></li>
+                     <li class="p-3"><div class="flex justify-between items-center"><p class="font-semibold text-gray-800">Lê Văn An</p><p class="text-sm font-bold">17:32:10</p></div><div class="flex justify-between items-center mt-1"><p class="text-xs text-gray-500">Chấm ra - Hợp lệ</p></div></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="map-view-screen" class="screen">
+        <header class="app-header"><button class="navigate-btn" data-target="admin-app-container" data-tab-to-show="admin-home-tab"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button><h2 class="text-lg font-bold ml-4">Bản đồ Lộ trình</h2></header>
+        <div class="relative flex-grow">
+            <div id="map-container"></div>
+            <div id="map-legend" class="map-overlay">
+                <h3 class="font-bold text-sm mb-2">Chú giải</h3>
+                <div id="legend-items" class="space-y-1"></div>
+            </div>
         </div>
     </div>
     
-     <!-- Màn hình Cài đặt chấm công -->
-    <div id="tracking-settings-screen" class="screen">
-        <header class="p-4 bg-white border-b flex items-center">
-            <button class="navigate-back" data-target="main-app-container" data-tab="settings-tab">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-            </button>
-            <h2 class="text-lg font-bold ml-4">Cài đặt Chấm công</h2>
-        </header>
-        <div class="content space-y-6">
-            <div class="bg-white p-4 rounded-lg shadow-sm">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="font-bold">Chấm công qua GPS</h3>
-                        <p class="text-sm text-gray-500">Yêu cầu nhân viên ở đúng vị trí</p>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" value="" class="sr-only peer" checked>
-                      <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    </label>
-                </div>
-            </div>
-             <div class="bg-white p-4 rounded-lg shadow-sm">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="font-bold">Chấm công qua Wifi</h3>
-                        <p class="text-sm text-gray-500">Yêu cầu kết nối đúng mạng Wifi</p>
-                    </div>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" value="" class="sr-only peer">
-                      <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    </label>
-                </div>
-            </div>
-            <button class="btn-primary w-full mt-6">Lưu cài đặt</button>
-        </div>
-    </div>
-
-
+</div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const screens = document.querySelectorAll('.screen');
-    const pageTitle = document.getElementById('page-title');
+    const loginAlert = document.getElementById('login-alert');
+    let map;
+    let routeLayers = {};
 
     function navigateTo(screenId) {
         screens.forEach(s => s.classList.remove('active'));
         const targetScreen = document.getElementById(screenId);
         if (targetScreen) {
             targetScreen.classList.add('active');
+            if (screenId === 'login-screen') {
+                document.querySelectorAll('.admin-nav, .employee-nav').forEach(nav => nav.classList.remove('active'));
+                document.querySelector('.admin-nav[data-tab="admin-home-tab"]')?.classList.add('active');
+                document.querySelector('.employee-nav[data-tab="employee-home-tab"]')?.classList.add('active');
+                loginAlert.style.display = 'none';
+            } else if (screenId === 'map-view-screen') {
+                // Defer map initialization to ensure container is visible
+                setTimeout(initializeMap, 100);
+            }
         }
     }
     
-    document.getElementById('go-to-signup').addEventListener('click', (e) => {
-        e.preventDefault();
-        navigateTo('signup-screen');
-    });
-
-    document.getElementById('signup-btn').addEventListener('click', (e) => {
-        e.preventDefault();
-        navigateTo('plan-screen');
-    });
-    
-    document.getElementById('login-btn').addEventListener('click', (e) => {
-        e.preventDefault();
-        navigateTo('main-app-container');
-        document.querySelector('.nav-item[data-tab="home-tab"]').click();
-    });
-    
-    document.getElementById('confirm-plan-btn').addEventListener('click', (e) => {
-        e.preventDefault();
-        navigateTo('main-app-container');
-        document.querySelector('.nav-item[data-tab="home-tab"]').click();
-    });
-
-    document.querySelectorAll('.navigate-back').forEach(button => {
+    document.querySelectorAll('.navigate-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
             const targetScreenId = button.dataset.target;
             navigateTo(targetScreenId);
-            if (button.dataset.tab) {
-                document.querySelector(`.nav-item[data-tab="${button.dataset.tab}"]`).click();
+            if (button.dataset.tabToShow) {
+                 setTimeout(() => document.querySelector(`.nav-item[data-tab="${button.dataset.tabToShow}"]`)?.click(), 50);
             }
         });
     });
-    
-    const navItems = document.querySelectorAll('.nav-item');
-    const tabContents = document.querySelectorAll('.tab-content');
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            navItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-            
-            pageTitle.textContent = item.dataset.title;
 
-            tabContents.forEach(content => {
-                if (content.id === item.dataset.tab) {
-                    content.classList.remove('hidden');
-                } else {
-                    content.classList.add('hidden');
-                }
-            });
+    document.getElementById('login-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        if (email.toLowerCase().includes('admin')) {
+            navigateTo('admin-app-container');
+            document.querySelector('.admin-nav[data-tab="admin-home-tab"]')?.click();
+        } else if (email) {
+            navigateTo('employee-app-container');
+            document.querySelector('.employee-nav[data-tab="employee-home-tab"]')?.click();
+        } else {
+            loginAlert.textContent = 'Email hoặc mật khẩu không đúng.';
+            loginAlert.style.display = 'block';
+        }
+    });
+
+    // Admin Nav
+    const adminNavItems = document.querySelectorAll('.admin-nav');
+    const adminTabContents = document.querySelectorAll('.admin-tab-content');
+    const adminPageTitle = document.getElementById('admin-page-title');
+    adminNavItems.forEach(item => {
+        item.addEventListener('click', () => {
+            adminNavItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            adminPageTitle.textContent = item.dataset.title;
+            adminTabContents.forEach(content => content.classList.toggle('hidden', content.id !== item.dataset.tab));
         });
     });
 
-    document.getElementById('go-to-invite').addEventListener('click', () => navigateTo('invite-screen'));
-    document.getElementById('go-to-tracking-settings').addEventListener('click', () => navigateTo('tracking-settings-screen'));
+    // Employee Nav
+    const employeeNavItems = document.querySelectorAll('.employee-nav');
+    const employeeTabContents = document.querySelectorAll('.employee-tab-content');
+    const employeePageTitle = document.getElementById('employee-page-title');
+    employeeNavItems.forEach(item => {
+        item.addEventListener('click', () => {
+            employeeNavItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            employeePageTitle.textContent = item.dataset.title;
+            employeeTabContents.forEach(content => content.classList.toggle('hidden', content.id !== item.dataset.tab));
+        });
+    });
 
+    // Time update
     function updateTime() {
         const time = new Date();
-        document.getElementById('time-display').textContent = time.getHours() + ':' + String(time.getMinutes()).padStart(2, '0');
+        const timeString = time.getHours() + ':' + String(time.getMinutes()).padStart(2, '0');
+        const timeStringWithSeconds = time.toLocaleTimeString('vi-VN');
+        const dateString = `Thứ ${time.getDay() === 0 ? 8 : time.getDay() + 1}, ${String(time.getDate()).padStart(2, '0')}/${String(time.getMonth() + 1).padStart(2, '0')}/${time.getFullYear()}`;
+        document.getElementById('time-display').textContent = timeString;
+        const employeeTime = document.getElementById('current-time-employee');
+        if(employeeTime) {
+            employeeTime.textContent = timeStringWithSeconds;
+            document.getElementById('current-date-employee').textContent = dateString;
+        }
     }
     setInterval(updateTime, 1000);
     updateTime();
+
+    // Multi Check-in logic
+    const checkinBtn = document.getElementById('checkin-btn');
+    const activityList = document.getElementById('today-activity-list');
+    let checkinCounter = 0;
+    checkinBtn.addEventListener('click', () => {
+        const now = new Date();
+        const time = now.toLocaleTimeString('vi-VN');
+        checkinCounter++;
+        const type = checkinCounter % 2 !== 0 ? 'vào' : 'ra';
+        const typeText = type === 'vào' ? 'Chấm vào' : 'Chấm ra';
+        const icon = type === 'vào' ? '✅' : '👋';
+        const location = checkinCounter < 3 ? 'Văn phòng' : 'Khách hàng A';
+        const statusClass = location === 'Văn phòng' ? 'text-green-600 bg-green-100' : 'text-yellow-600 bg-yellow-100';
+        const statusText = location === 'Văn phòng' ? 'Hợp lệ' : 'Ngoài VP';
+        const newActivity = `<div class="p-3 bg-gray-50 rounded-md"><div class="flex justify-between items-center"><p class="font-semibold text-gray-800">${icon} ${typeText}</p><p class="text-sm font-bold">${time}</p></div><div class="flex justify-between items-center mt-1"><p class="text-xs text-gray-500">Vị trí: ${location}</p><span class="text-xs font-semibold ${statusClass} px-2 py-1 rounded-full">${statusText}</span></div></div>`;
+        activityList.insertAdjacentHTML('afterbegin', newActivity);
+    });
+    
+    // Export Excel
+    document.getElementById('export-excel-btn').addEventListener('click', () => {
+        alert('Đang xuất dữ liệu ra file Excel...');
+    });
+
+    // Map Logic
+    function initializeMap() {
+        if (map) { map.remove(); }
+        map = L.map('map-container').setView([16.047079, 108.206230], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        const employeeRoutes = {
+            "Lê Văn An": {
+                color: '#3b82f6', // blue
+                path: [[16.05445, 108.20379],[16.0605, 108.2100],[16.0651, 108.2185],[16.0750, 108.2235]]
+            },
+            "Trần Thị Bích": {
+                color: '#ef4444', // red
+                path: [[16.0470, 108.2207],[16.0425, 108.2155],[16.0381, 108.2115],[16.0350, 108.2085]]
+            }
+        };
+
+        const legendContainer = document.getElementById('legend-items');
+        legendContainer.innerHTML = '';
+        routeLayers = {};
+
+        for (const name in employeeRoutes) {
+            const data = employeeRoutes[name];
+            const polyline = L.polyline(data.path, { color: data.color, weight: 5 }).addTo(map);
+            const startMarker = L.marker(data.path[0]).addTo(map).bindPopup(`Bắt đầu: ${name}`);
+            const endMarker = L.marker(data.path[data.path.length-1]).addTo(map).bindPopup(`Kết thúc: ${name}`);
+
+            const layerGroup = L.layerGroup([polyline, startMarker, endMarker]);
+            routeLayers[name] = layerGroup;
+
+            const legendItem = `
+                <div class="flex items-center">
+                    <input type="checkbox" id="route-${name.replace(/\s+/g, '-')}" class="route-toggle mr-2" data-name="${name}" checked>
+                    <div class="w-4 h-1 mr-2" style="background-color: ${data.color};"></div>
+                    <label for="route-${name.replace(/\s+/g, '-')}" class="text-xs">${name}</label>
+                </div>
+            `;
+            legendContainer.insertAdjacentHTML('beforeend', legendItem);
+        }
+        
+        document.querySelectorAll('.route-toggle').forEach(toggle => {
+            toggle.addEventListener('change', (e) => {
+                const employeeName = e.target.dataset.name;
+                if(e.target.checked) {
+                    map.addLayer(routeLayers[employeeName]);
+                } else {
+                    map.removeLayer(routeLayers[employeeName]);
+                }
+            });
+        });
+
+        // Fit map to show all routes
+        const allBounds = L.latLngBounds(Object.values(employeeRoutes).flatMap(r => r.path));
+        map.fitBounds(allBounds.pad(0.1));
+    }
 });
 </script>
 
