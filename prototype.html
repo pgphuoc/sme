@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const icon = type === 'vào' ? '✅' : '👋';
         const location = checkinCounter < 3 ? 'Văn phòng' : 'Khách hàng A';
         const statusClass = location === 'Văn phòng' ? 'text-green-600 bg-green-100' : 'text-yellow-600 bg-yellow-100';
-        const statusText = location === 'Văn phòng' ? 'Hợp lệ' : 'Ngoài VP';
+        const statusText = location === 'Văn phòng' ? 'Tại VP' : 'Ngoài VP';
         const newActivity = `<div class="p-3 bg-gray-50 rounded-md"><div class="flex justify-between items-center"><p class="font-semibold text-gray-800">${icon} ${typeText}</p><p class="text-sm font-bold">${time}</p></div><div class="flex justify-between items-center mt-1"><p class="text-xs text-gray-500">Vị trí: ${location}</p><span class="text-xs font-semibold ${statusClass} px-2 py-1 rounded-full">${statusText}</span></div></div>`;
         activityList.insertAdjacentHTML('afterbegin', newActivity);
     });
