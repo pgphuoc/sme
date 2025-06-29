@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XINK Odoo Convention Guide - AI Development Theme</title>
+    <title>XINK Tech Convention Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chosen Palette: AI Dark Mode (Deep Navy, Cyan, Purple) -->
     <!-- Application Structure Plan: The SPA now presents a more sophisticated, layered architecture. The interactive tree is reordered to reflect this (models -> services -> constants -> controllers -> views). New sections for services, utils, and constants are added, promoting a clean separation of concerns. This transforms the guide from a simple convention list into an architectural best-practice manual. -->
@@ -166,7 +166,7 @@
             <h2 class="text-3xl font-bold mb-4 text-slate-100">3. Git Convention</h2>
             <p class="mb-6 text-slate-400">Quy chuẩn làm việc với Git để đảm bảo lịch sử mã nguồn (version control) sạch sẽ, rõ ràng và chuyên nghiệp.</p>
             
-            <div class="space-y-6">
+            <div class="space-y-8">
                 <div>
                     <h4 class="text-xl font-semibold text-slate-200">1. Cấu hình Git cá nhân</h4>
                     <p class="text-slate-400 mt-2">Đảm bảo bạn đã cấu hình user name và email trên máy tính cá nhân. Việc này giúp xác định đúng tác giả của mỗi commit.</p>
@@ -181,7 +181,21 @@ git config --global user.email "thienba@xink.tech"
                 </div>
 
                 <div>
-                    <h4 class="text-xl font-semibold text-slate-200">2. Quy tắc Commit Message</h4>
+                    <h4 class="text-xl font-semibold text-slate-200">2. Quy tắc tạo Branch</h4>
+                    <p class="text-slate-400 mt-2">Tên nhánh cần phải ngắn gọn, mang tính mô tả và tuân theo định dạng sau để dễ dàng nhận biết mục đích.</p>
+                     <p class="text-slate-400 mt-2">Cấu trúc chung:</p>
+                    <div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-text">&lt;type&gt;/&lt;description&gt;</code></pre></div>
+                     <h5 class="text-lg font-semibold text-slate-300 mt-4">Ví dụ:</h5>
+                     <ul class="list-disc list-inside space-y-2 pl-4 text-slate-400 mt-2">
+                        <li>Phát triển tính năng mới: <code>feat/add-user-profile-page</code></li>
+                        <li>Sửa lỗi: <code>fix/user-login-issue</code></li>
+                        <li>Tái cấu trúc code: <code>refactor/simplify-service-layer</code></li>
+                        <li>Cập nhật tài liệu: <code>docs/update-git-convention</code></li>
+                     </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-xl font-semibold text-slate-200">3. Quy tắc Commit Message</h4>
                     <p class="text-slate-400 mt-2">Áp dụng tiêu chuẩn <a href="https://www.conventionalcommits.org/" target="_blank" class="text-blue-400 hover:underline">Conventional Commits</a> để viết commit message. Điều này giúp tự động hóa việc tạo changelog và giúp các thành viên khác hiểu rõ mục đích của mỗi thay đổi.</p>
                     <p class="text-slate-400 mt-2">Cấu trúc chung:</p>
                     <div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-text">&lt;type&gt;[optional scope]: &lt;description&gt;
@@ -285,9 +299,9 @@ git config --global user.email "thienba@xink.tech"
                     </ul>`,
                 "details-manifest": `
                     <h3 class="text-xl font-bold text-slate-100">📄 __manifest__.py</h3>
-                    <h4>1/ Mục đích</h4><p class="text-slate-400">Là file "linh hồn" của module, khai báo mọi thông tin, dependencies, và danh sách các file (xml, csv) cần được load.</p>
-                    <h4>2/ Quy tắc trong code</h4><p class="text-slate-400">Tên kỹ thuật của module phải theo mẫu <code>xink_&lt;tên_chức_năng&gt;</code>. Ví dụ: <code>xink_user_management</code>.</p>
-                    <h4>3/ Giải thích thứ tự Loading trong key 'data'</h4>
+                    <h4>1. Mục đích</h4><p class="text-slate-400">Là file "linh hồn" của module, khai báo mọi thông tin, dependencies, và danh sách các file (xml, csv) cần được load.</p>
+                    <h4>2. Quy tắc trong code</h4><p class="text-slate-400">Tên kỹ thuật của module phải theo mẫu <code>xink_&lt;tên_chức_năng&gt;</code>. Ví dụ: <code>xink_user_management</code>.</p>
+                    <h4>3. Giải thích thứ tự Loading trong key 'data'</h4>
                     <p class="text-slate-400">Thứ tự các file được liệt kê trong key <code>'data'</code> là cực kỳ quan trọng vì Odoo sẽ load chúng tuần tự. Việc sắp xếp sai có thể gây ra lỗi "External ID not found" nếu một file cố gắng sử dụng một record (view, group, menu) chưa được tạo.</p>
                     <p class="text-slate-400 mt-2">Quy tắc sắp xếp khuyến nghị:</p>
                     <ol class="list-decimal list-inside pl-4 mt-2 text-slate-400 space-y-1">
@@ -297,7 +311,7 @@ git config --global user.email "thienba@xink.tech"
                         <li><strong>wizard/*_views.xml</strong>: Khai báo giao diện cho wizard.</li>
                         <li><strong>views/*.xml</strong>: Tạo các view, action, và menu. Các file này thường phụ thuộc vào groups đã tạo ở bước security.</li>
                     </ol>
-                    <h4>4/ Các thuộc tính</h4>
+                    <h4>4. Các thuộc tính</h4>
                     <div class="overflow-x-auto"><table><thead><tr><th>Key</th><th>Bắt buộc?</th><th>Mô tả & Cách sử dụng</th></tr></thead><tbody>
                     <tr><td><code>name</code></td><td>Bắt buộc</td><td>Tên module hiển thị trên UI.</td></tr>
                     <tr><td><code>version</code></td><td>Tùy chọn</td><td>Phiên bản của module, ví dụ: '17.0.1.0.0'.</td></tr>
@@ -315,7 +329,7 @@ git config --global user.email "thienba@xink.tech"
                     <tr><td><code>installable</code></td><td>Tùy chọn</td><td><code>True</code> nếu module có thể được cài đặt. Mặc định là <code>True</code>.</td></tr>
                     <tr><td><code>auto_install</code></td><td>Tùy chọn</td><td><code>True</code> nếu module tự động cài đặt khi tất cả dependencies đã được cài.</td></tr>
                     </tbody></table></div>
-                    <h4>5/ Source ví dụ</h4>
+                    <h4>5. Source ví dụ</h4>
                     <div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-python"># in xink_user_management/__manifest__.py
 {
     'name': "XINK - User Management",
@@ -340,10 +354,10 @@ git config --global user.email "thienba@xink.tech"
 }</code></pre></div>`,
                 "details-models": `
                     <h3 class="text-xl font-bold text-slate-100">📁 models/</h3>
-                    <h4>1/ Mục đích</h4><p class="text-slate-400">Định nghĩa cấu trúc dữ liệu và các logic cơ bản gắn liền với dữ liệu (hàm compute, onchange, constraint).</p>
-                    <h4>2/ Quy tắc đặt tên file</h4><p class="text-slate-400"><code>&lt;tên_model&gt;.py</code>. Nếu kế thừa, đặt tên theo model gốc. Ví dụ: <code>res_users.py</code>.</p>
-                    <h4>3/ Quy tắc trong code</h4><ul class="list-disc list-inside text-slate-400 pl-4"><li>Tên class: <code>PascalCase</code>. Ví dụ: <code>ResUsers</code>.</li><li>Tên model (<code>_name</code>): Bắt đầu bằng tiền tố <code>xink.</code> nếu là model mới. Ví dụ: <code>_name = 'xink.user.log'</code>.</li></ul>
-                    <h4>4/ Các thuộc tính</h4>
+                    <h4>1. Mục đích</h4><p class="text-slate-400">Định nghĩa cấu trúc dữ liệu và các logic cơ bản gắn liền với dữ liệu (hàm compute, onchange, constraint).</p>
+                    <h4>2. Quy tắc đặt tên file</h4><p class="text-slate-400"><code>&lt;tên_model&gt;.py</code>. Nếu kế thừa, đặt tên theo model gốc. Ví dụ: <code>res_users.py</code>.</p>
+                    <h4>3. Quy tắc trong code</h4><ul class="list-disc list-inside text-slate-400 pl-4"><li>Tên class: <code>PascalCase</code>. Ví dụ: <code>ResUsers</code>.</li><li>Tên model (<code>_name</code>): Bắt đầu bằng tiền tố <code>xink.</code> nếu là model mới. Ví dụ: <code>_name = 'xink.user.log'</code>.</li></ul>
+                    <h4>4. Các thuộc tính</h4>
                     <h5>Thuộc tính Model phổ biến</h5>
                     <div class="overflow-x-auto"><table><thead><tr><th>Thuộc tính</th><th>Mô tả & Cách sử dụng</th></tr></thead><tbody>
                         <tr><td><code>_name</code></td><td>Định nghĩa tên model trong database. Ví dụ: <code>'xink.user.profile'</code>.</td></tr>
@@ -361,7 +375,7 @@ git config --global user.email "thienba@xink.tech"
                         <tr><td><code>@api.onchange(...)</code></td><td>Định nghĩa phương thức được kích hoạt khi giá trị một trường thay đổi trên UI (trước khi lưu).</td></tr>
                         <tr><td><code>@api.constrains(...)</code></td><td>Định nghĩa các ràng buộc Python, sẽ được kiểm tra khi record được tạo hoặc cập nhật.</td></tr>
                     </tbody></table></div>
-                    <h4>5/ Source ví dụ</h4>
+                    <h4>5. Source ví dụ</h4>
                     <div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-python"># in models/res_users.py
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
@@ -401,17 +415,17 @@ class ResUsers(models.Model):
 </code></pre></div>`,
                 "details-views": `
                     <h3 class="text-xl font-bold text-slate-100">📁 views/</h3>
-                    <h4>1/ Mục đích</h4><p class="text-slate-400">Chứa các file XML định nghĩa giao diện người dùng.</p>
-                    <h4>2/ Quy tắc đặt tên file</h4><ul class="list-disc list-inside text-slate-400 pl-4"><li>Views: <code>&lt;model_name&gt;_views.xml</code> (ví dụ: <code>res_users_views.xml</code>).</li><li>Menus: <code>&lt;module_name&gt;_menus.xml</code>.</li></ul>
-                    <h4>3/ Quy tắc trong code</h4><p class="text-slate-400">ID record phải bắt đầu bằng <code>xink_</code> và có tính mô tả. Ví dụ: <code>xink_res_users_view_form_inherit</code>.</p>
-                    <h4>4/ Các thuộc tính</h4>
+                    <h4>1. Mục đích</h4><p class="text-slate-400">Chứa các file XML định nghĩa giao diện người dùng.</p>
+                    <h4>2. Quy tắc đặt tên file</h4><ul class="list-disc list-inside text-slate-400 pl-4"><li>Views: <code>&lt;model_name&gt;_views.xml</code> (ví dụ: <code>res_users_views.xml</code>).</li><li>Menus: <code>&lt;module_name&gt;_menus.xml</code>.</li></ul>
+                    <h4>3. Quy tắc trong code</h4><p class="text-slate-400">ID record phải bắt đầu bằng <code>xink_</code> và có tính mô tả. Ví dụ: <code>xink_res_users_view_form_inherit</code>.</p>
+                    <h4>4. Các thuộc tính</h4>
                      <div class="overflow-x-auto"><table><thead><tr><th>Thẻ/Thuộc tính</th><th>Mô tả & Cách sử dụng</th></tr></thead><tbody>
                      <tr><td><code>&lt;record&gt;</code></td><td>Record chính để định nghĩa một view, action, menu. <code>id</code> và <code>model</code> là bắt buộc.</td></tr>
                      <tr><td><code>&lt;field name="arch"&gt;</code></td><td>Chứa kiến trúc XML của view.</td></tr>
                      <tr><td><code>&lt;xpath expr="..." position="..."&gt;</code></td><td>Dùng để kế thừa và sửa đổi view đã có. <code>expr</code> là một biểu thức XPath để tìm vị trí. <code>position</code> có thể là 'inside', 'after', 'before', 'replace'.</td></tr>
                      <tr><td><code>widget="..."</code></td><td>Thuộc tính của <code>&lt;field&gt;</code> để thay đổi cách hiển thị. Ví dụ: <code>widget="url"</code>, <code>widget="many2many_tags"</code>.</td></tr>
                      </tbody></table></div>
-                    <h4>5/ Source ví dụ</h4>
+                    <h4>5. Source ví dụ</h4>
                     <div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-xml">&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;odoo&gt;
     &lt;record id="xink_res_users_view_form_inherit" model="ir.ui.view"&gt;
@@ -432,17 +446,17 @@ class ResUsers(models.Model):
 &lt;/odoo&gt;</code></pre></div>`,
                 "details-static": `
                     <h3 class="text-xl font-bold text-slate-100">📁 static/</h3>
-                    <h4>1/ Mục đích</h4><p class="text-slate-400">Chứa các file tĩnh như CSS, JavaScript, hình ảnh, font chữ.</p>
-                    <h4>2/ Quy tắc đặt tên file</h4><p class="text-slate-400">Đặt tên file có tính mô tả chức năng. Ví dụ: <code>user_actions.js</code>, <code>profile_styles.css</code>.</p>
-                    <h4>3/ Quy tắc trong code</h4><p class="text-slate-400">Code JS phải được gói trong <code>odoo.define(...)</code>. Tên định danh phải là <code>&lt;module_name&gt;.&lt;functionality&gt;</code>.</p>
-                    <h4>4/ Các thuộc tính</h4>
+                    <h4>1. Mục đích</h4><p class="text-slate-400">Chứa các file tĩnh như CSS, JavaScript, hình ảnh, font chữ.</p>
+                    <h4>2. Quy tắc đặt tên file</h4><p class="text-slate-400">Đặt tên file có tính mô tả chức năng. Ví dụ: <code>user_actions.js</code>, <code>profile_styles.css</code>.</p>
+                    <h4>3. Quy tắc trong code</h4><p class="text-slate-400">Code JS phải được gói trong <code>odoo.define(...)</code>. Tên định danh phải là <code>&lt;module_name&gt;.&lt;functionality&gt;</code>.</p>
+                    <h4>4. Các thuộc tính</h4>
                     <div class="overflow-x-auto"><table><thead><tr><th>Thành phần</th><th>Mô tả & Cách sử dụng</th></tr></thead><tbody>
                     <tr><td><code>odoo.define(...)</code></td><td>Định nghĩa một module Javascript mới trong Odoo. Tham số đầu tiên là tên định danh duy nhất.</td></tr>
                     <tr><td><code>require(...)</code></td><td>Dùng để import các module JS khác của Odoo.</td></tr>
                     <tr><td><code>&lt;t t-extend&gt;</code></td><td>Thẻ QWeb dùng để kế thừa một template JS đã có.</td></tr>
                     <tr><td><code>&lt;t t-jquery&gt;</code></td><td>Chỉ định một selector jQuery để tìm và thao tác với phần tử trong template gốc.</td></tr>
                     </tbody></table></div>
-                    <h4>5/ Source ví dụ</h4>
+                    <h4>5. Source ví dụ</h4>
                     <div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-javascript">// In static/src/js/user_actions.js
 odoo.define('xink_user_management.user_actions', function (require) {
 "use strict";
@@ -451,7 +465,7 @@ ListController.include({
     // ... logic để thêm nút Sync Users ...
 });
 });</code></pre></div>`,
-                "details-service": `<div class="space-y-4"><h3 class="text-xl font-bold text-slate-100">📁 service/</h3><h4>1/ Mục đích</h4><p class="text-slate-400">Chứa các lớp Service, nơi xử lý chính các logic nghiệp vụ phức tạp, tách biệt khỏi controller và model.</p><h4>2/ Quy tắc đặt tên file</h4><p class="text-slate-400"><code>&lt;tên_logic&gt;_service.py</code>. Ví dụ: <code>user_service.py</code>.</p><h4>3/ Quy tắc trong code</h4><ul class="list-disc list-inside text-slate-400 pl-4"><li>Tên class: <code>PascalCase</code> + Service. Ví dụ: <code>UserService</code>.</li><li>Là lớp Python thuần, nhận <code>env</code> qua hàm khởi tạo <code>__init__</code>.</li></ul><h4>4/ Các thuộc tính</h4><p class="text-slate-400">Không có thuộc tính đặc biệt. Các phương thức nên được đặt tên rõ ràng theo hành động nghiệp vụ.</p><h4>5/ Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-python"># In service/user_service.py
+                "details-service": `<div class="space-y-4"><h3 class="text-xl font-bold text-slate-100">📁 service/</h3><h4>1. Mục đích</h4><p class="text-slate-400">Chứa các lớp Service, nơi xử lý chính các logic nghiệp vụ phức tạp, tách biệt khỏi controller và model.</p><h4>2. Quy tắc đặt tên file</h4><p class="text-slate-400"><code>&lt;tên_logic&gt;_service.py</code>. Ví dụ: <code>user_service.py</code>.</p><h4>3. Quy tắc trong code</h4><ul class="list-disc list-inside text-slate-400 pl-4"><li>Tên class: <code>PascalCase</code> + Service. Ví dụ: <code>UserService</code>.</li><li>Là lớp Python thuần, nhận <code>env</code> qua hàm khởi tạo <code>__init__</code>.</li></ul><h4>4. Các thuộc tính</h4><p class="text-slate-400">Không có thuộc tính đặc biệt. Các phương thức nên được đặt tên rõ ràng theo hành động nghiệp vụ.</p><h4>5. Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-python"># In service/user_service.py
 from odoo.exceptions import UserError
 class UserService:
     def __init__(self, env):
@@ -464,7 +478,7 @@ class UserService:
         user = self.env['res.users'].create(user_vals)
         return user
 </code></pre></div></div>`,
-                "details-controllers": `<div class="space-y-4"><h3 class="text-xl font-bold text-slate-100">📁 controllers/</h3><h4>1/ Mục đích</h4><p class="text-slate-400">Xử lý các HTTP request, API endpoints. Là cầu nối giữa người dùng và hệ thống.</p><h4>2/ Quy tắc đặt tên file</h4><p class="text-slate-400"><code>main.py</code> cho route chính, hoặc theo chức năng <code>api.py</code>, <code>portal.py</code>.</p><h4>3/ Quy tắc trong code</h4><p class="text-slate-400">Controller nên là lớp mỏng, chỉ validate và gọi Service. <strong>KHÔNG</strong> chứa business logic.</p><h4>4/ Các thuộc tính</h4><div class="overflow-x-auto"><table><thead><tr><th>Decorator</th><th>Mô tả & Cách sử dụng</th></tr></thead><tbody><tr><td><code>@http.route(...)</code></td><td>Định nghĩa một endpoint. Các tham số quan trọng: <code>route</code> (URL), <code>type</code> ('http' hoặc 'json'), <code>auth</code> ('public', 'user', 'none'), <code>methods</code> (['GET', 'POST']).</td></tr></tbody></table></div><h4>5/ Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-python"># In controllers/user_api.py
+                "details-controllers": `<div class="space-y-4"><h3 class="text-xl font-bold text-slate-100">📁 controllers/</h3><h4>1. Mục đích</h4><p class="text-slate-400">Xử lý các HTTP request, API endpoints. Là cầu nối giữa người dùng và hệ thống.</p><h4>2. Quy tắc đặt tên file</h4><p class="text-slate-400"><code>main.py</code> cho route chính, hoặc theo chức năng <code>api.py</code>, <code>portal.py</code>.</p><h4>3. Quy tắc trong code</h4><p class="text-slate-400">Controller nên là lớp mỏng, chỉ validate và gọi Service. <strong>KHÔNG</strong> chứa business logic.</p><h4>4. Các thuộc tính</h4><div class="overflow-x-auto"><table><thead><tr><th>Decorator</th><th>Mô tả & Cách sử dụng</th></tr></thead><tbody><tr><td><code>@http.route(...)</code></td><td>Định nghĩa một endpoint. Các tham số quan trọng: <code>route</code> (URL), <code>type</code> ('http' hoặc 'json'), <code>auth</code> ('public', 'user', 'none'), <code>methods</code> (['GET', 'POST']).</td></tr></tbody></table></div><h4>5. Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-python"># In controllers/user_api.py
 from odoo import http
 from odoo.http import request
 # Giả sử service đã được import
@@ -480,17 +494,17 @@ class UserApiController(http.Controller):
         except Exception as e:
             return {'success': False, 'error': str(e)}
 </code></pre></div></div>`,
-                "details-constant": `<h3 class="text-xl font-bold text-slate-100">📁 constant/</h3><h4>1/ Mục đích</h4><p class="text-slate-400">Lưu trữ các giá trị không đổi của module như URL, thông báo lỗi, trạng thái.</p><h4>2/ Quy tắc đặt tên file</h4><p class="text-slate-400"><code>message.py</code>, <code>route.py</code>, etc. Dùng <code>__init__.py</code> để import tất cả.</p><h4>3/ Quy tắc trong code</h4><p class="text-slate-400">Tên biến hằng số: VIẾT HOA TOÀN BỘ. Ví dụ: <code>USER_CREATION_SUCCESS</code>.</p><h4>4/ Các thuộc tính</h4><p class="text-slate-400">Không có, chỉ là các biến Python.</p><h4>5/ Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-python"># In constant/message.py
+                "details-constant": `<h3 class="text-xl font-bold text-slate-100">📁 constant/</h3><h4>1. Mục đích</h4><p class="text-slate-400">Lưu trữ các giá trị không đổi của module như URL, thông báo lỗi, trạng thái.</p><h4>2. Quy tắc đặt tên file</h4><p class="text-slate-400"><code>message.py</code>, <code>route.py</code>, etc. Dùng <code>__init__.py</code> để import tất cả.</p><h4>3. Quy tắc trong code</h4><p class="text-slate-400">Tên biến hằng số: VIẾT HOA TOÀN BỘ. Ví dụ: <code>USER_CREATION_SUCCESS</code>.</p><h4>4. Các thuộc tính</h4><p class="text-slate-400">Không có, chỉ là các biến Python.</p><h4>5. Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-python"># In constant/message.py
 USER_CREATION_SUCCESS = "User created successfully."
 ERROR_LOGIN_EXISTS = "This login already exists."
 </code></pre></div>`,
-                "details-utils": `<h3 class="text-xl font-bold text-slate-100">📁 utils/</h3><h4>1/ Mục đích</h4><p class="text-slate-400">Chứa các hàm tiện ích có thể tái sử dụng, không thuộc về một nghiệp vụ cụ thể nào.</p><h4>2/ Quy tắc đặt tên file</h4><p class="text-slate-400">Theo chức năng tiện ích. Ví dụ: <code>validation_utils.py</code>.</p><h4>3/ Quy tắc trong code</h4><p class="text-slate-400">Là các hàm Python thuần, không phụ thuộc vào <code>env</code>.</p><h4>4/ Các thuộc tính</h4><p class="text-slate-400">Không có.</p><h4>5/ Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-python"># In utils/validation_utils.py
+                "details-utils": `<h3 class="text-xl font-bold text-slate-100">📁 utils/</h3><h4>1. Mục đích</h4><p class="text-slate-400">Chứa các hàm tiện ích có thể tái sử dụng, không thuộc về một nghiệp vụ cụ thể nào.</p><h4>2. Quy tắc đặt tên file</h4><p class="text-slate-400">Theo chức năng tiện ích. Ví dụ: <code>validation_utils.py</code>.</p><h4>3. Quy tắc trong code</h4><p class="text-slate-400">Là các hàm Python thuần, không phụ thuộc vào <code>env</code>.</p><h4>4. Các thuộc tính</h4><p class="text-slate-400">Không có.</p><h4>5. Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-python"># In utils/validation_utils.py
 import re
 def is_valid_email(email):
     regex = r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b'
     return re.fullmatch(regex, email)
 </code></pre></div>`,
-                "details-data": `<h3 class="text-xl font-bold text-slate-100">📁 data/</h3><h4>1/ Mục đích</h4><p class="text-slate-400">Chứa các file dữ liệu được khởi tạo một lần khi cài đặt hoặc cập nhật module.</p><h4>2/ Quy tắc đặt tên file</h4><p class="text-slate-400">Theo mục đích dữ liệu, ví dụ <code>mail_template_data.xml</code>.</p><h4>3/ Quy tắc trong code</h4><p class="text-slate-400">ID record phải có tiền tố logic, ví dụ: <code>mail_template_xink_welcome_user</code>.</p><h4>4/ Các thuộc tính</h4><div class="overflow-x-auto"><table><thead><tr><th>Thuộc tính</th><th>Mô tả & Cách sử dụng</th></tr></thead><tbody><tr><td><code>noupdate="1"</code></td><td>Đặt trong thẻ <code>&lt;odoo&gt;</code>. Nếu là '1', các record trong file này sẽ không bị ghi đè khi cập nhật module.</td></tr></tbody></table></div><h4>5/ Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-xml">&lt;?xml version="1.0" encoding="utf-8"?&gt;
+                "details-data": `<h3 class="text-xl font-bold text-slate-100">📁 data/</h3><h4>1. Mục đích</h4><p class="text-slate-400">Chứa các file dữ liệu được khởi tạo một lần khi cài đặt hoặc cập nhật module.</p><h4>2. Quy tắc đặt tên file</h4><p class="text-slate-400">Theo mục đích dữ liệu, ví dụ <code>mail_template_data.xml</code>.</p><h4>3. Quy tắc trong code</h4><p class="text-slate-400">ID record phải có tiền tố logic, ví dụ: <code>mail_template_xink_welcome_user</code>.</p><h4>4. Các thuộc tính</h4><div class="overflow-x-auto"><table><thead><tr><th>Thuộc tính</th><th>Mô tả & Cách sử dụng</th></tr></thead><tbody><tr><td><code>noupdate="1"</code></td><td>Đặt trong thẻ <code>&lt;odoo&gt;</code>. Nếu là '1', các record trong file này sẽ không bị ghi đè khi cập nhật module.</td></tr></tbody></table></div><h4>5. Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-xml">&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;odoo noupdate="1"&gt;
     &lt;record id="xink_user_management_sequence" model="ir.sequence"&gt;
         &lt;field name="name"&gt;XINK User Sequence&lt;/field&gt;
@@ -499,11 +513,11 @@ def is_valid_email(email):
         &lt;field name="padding"&gt;5&lt;/field&gt;
     &lt;/record&gt;
 &lt;/odoo&gt;</code></pre></div>`,
-                "details-security": `<h3 class="text-xl font-bold text-slate-100">📁 security/</h3><h4>1/ Mục đích</h4><p class="text-slate-400">Chứa các thiết lập về bảo mật, phân quyền.</p><h4>2/ Quy tắc đặt tên file</h4><ul class="list-disc list-inside text-slate-400 pl-4"><li><code>ir.model.access.csv</code>: Bắt buộc cho quyền truy cập model.</li><li><code>&lt;module_name&gt;_security.xml</code>: Cho groups và record rules.</li></ul><h4>3/ Quy tắc trong code</h4><p class="text-slate-400">ID record phải có tiền tố <code>xink_</code> và có tính mô tả.</p><h4>4/ Các thuộc tính</h4><p class="text-slate-400">Trong file <code>ir.model.access.csv</code>, các cột bao gồm: <code>id</code>, <code>name</code>, <code>model_id:id</code>, <code>group_id:id</code>, <code>perm_read</code>, <code>perm_write</code>, <code>perm_create</code>, <code>perm_unlink</code>.</p><h4>5/ Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-csv"># In security/ir.model.access.csv
+                "details-security": `<h3 class="text-xl font-bold text-slate-100">📁 security/</h3><h4>1. Mục đích</h4><p class="text-slate-400">Chứa các thiết lập về bảo mật, phân quyền.</p><h4>2. Quy tắc đặt tên file</h4><ul class="list-disc list-inside text-slate-400 pl-4"><li><code>ir.model.access.csv</code>: Bắt buộc cho quyền truy cập model.</li><li><code>&lt;module_name&gt;_security.xml</code>: Cho groups và record rules.</li></ul><h4>3. Quy tắc trong code</h4><p class="text-slate-400">ID record phải có tiền tố <code>xink_</code> và có tính mô tả.</p><h4>4. Các thuộc tính</h4><p class="text-slate-400">Trong file <code>ir.model.access.csv</code>, các cột bao gồm: <code>id</code>, <code>name</code>, <code>model_id:id</code>, <code>group_id:id</code>, <code>perm_read</code>, <code>perm_write</code>, <code>perm_create</code>, <code>perm_unlink</code>.</p><h4>5. Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-csv"># In security/ir.model.access.csv
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_res_users_xink,xink.res.users.access,model_res_users,base.group_user,1,1,0,0
 </code></pre></div>`,
-                "details-wizard": `<h3 class="text-xl font-bold text-slate-100">📁 wizard/</h3><h4>1/ Mục đích</h4><p class="text-slate-400">Chứa logic và view cho các wizard (hộp thoại pop-up), sử dụng <code>models.TransientModel</code>.</p><h4>2/ Quy tắc đặt tên file</h4><p class="text-slate-400">Tên file python và xml phải tương ứng nhau, ví dụ: <code>create_user_wizard.py</code>.</p><h4>3/ Quy tắc trong code</h4><ul class="list-disc list-inside text-slate-400 pl-4"><li>Kế thừa từ <code>models.TransientModel</code>.</li><li>Tên model (<code>_name</code>): <code>xink.wizard.&lt;tên_logic&gt;</code>.</li></ul><h4>4/ Các thuộc tính</h4><p class="text-slate-400">Tương tự như model thông thường, nhưng dữ liệu chỉ là tạm thời.</p><h4>5/ Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-python"># In wizard/create_user_wizard.py
+                "details-wizard": `<h3 class="text-xl font-bold text-slate-100">📁 wizard/</h3><h4>1. Mục đích</h4><p class="text-slate-400">Chứa logic và view cho các wizard (hộp thoại pop-up), sử dụng <code>models.TransientModel</code>.</p><h4>2. Quy tắc đặt tên file</h4><p class="text-slate-400">Tên file python và xml phải tương ứng nhau, ví dụ: <code>create_user_wizard.py</code>.</p><h4>3. Quy tắc trong code</h4><ul class="list-disc list-inside text-slate-400 pl-4"><li>Kế thừa từ <code>models.TransientModel</code>.</li><li>Tên model (<code>_name</code>): <code>xink.wizard.&lt;tên_logic&gt;</code>.</li></ul><h4>4. Các thuộc tính</h4><p class="text-slate-400">Tương tự như model thông thường, nhưng dữ liệu chỉ là tạm thời.</p><h4>5. Source ví dụ</h4><div class="code-block rounded-lg overflow-hidden mt-2"><pre class="p-4"><code class="language-python"># In wizard/create_user_wizard.py
 from odoo import fields, models
 class CreateUserWizard(models.TransientModel):
     _name = 'xink.wizard.create.user'
