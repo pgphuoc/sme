@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Report - List, Modal & Calendar</title>
+    <!-- Tích hợp Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tích hợp IonIcons để có icon đẹp -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <style>
+        /* Thêm một vài style tùy chỉnh nhỏ */
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .toast, .tooltip {
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none; /* Quan trọng để không bị che các element khác */
+        }
+        .main-tab.active {
+            border-color: #3b82f6; /* blue-500 */
+            color: #2563eb; /* blue-600 */
+        }
+        .sub-tab.active {
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+        }
+        /* Style cho calendar */
+        .calendar-grid th, .calendar-grid td {
+            text-align: center;
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb; /* gray-200 */
+        }
+        .calendar-grid .member-name {
+            text-align: left;
+            font-weight: 600;
+        }
+        .report-cell {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- MODAL ĐỂ TẠO BÁO CÁO -->
+    <div id="report-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all" id="modal-panel">
+             <!-- Modal Header -->
+            <div class="flex items-center justify-between p-5 border-b border-gray-200">
+                <h3 class="text-xl font-bold text-gray-900">Tạo Báo Cáo Mới</h3>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-gray-600">
+                    <ion-icon name="close-outline" class="text-3xl"></ion-icon>
+                </button>
+            </div>
+            <!-- Modal Body -->
+            <div class="p-6">
+                <form id="report-form">
+                    <div class="space-y-6">
+                        <div>
+                            <label for="today-work" class="block text-sm font-medium text-gray-700 mb-2">Hôm nay làm gì?</label>
+                            <textarea id="today-work" rows="5" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Ví dụ: &#10;- [PRO-123] Hoàn thành UI trang đăng nhập.&#10;- Họp với khách hàng về yêu cầu mới."></textarea>
+                        </div>
+                        <div>
+                            <label for="tomorrow-plan" class="block text-sm font-medium text-gray-700 mb-2">Ngày mai dự định làm gì?</label>
+                            <textarea id="tomorrow-plan" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" placeholder="Ví dụ: [PRO-124] Tích hợp API đăng nhập."></textarea>
+                        </div>
+                        <div>
+                            <label for="issues" class="block text-sm font-medium text-gray-700 mb-2">Issue là gì?</label>
+                            <textarea id="issues" rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition" placeholder="Ví dụ: Môi trường dev bị chậm, cần hỗ trợ từ @devops_team"></textarea>
+                        </div>
+                    </div>
+                    <!-- Modal Footer -->
+                    <div class="flex items-center justify-end gap-4 pt-6 mt-6 border-t border-gray-200">
+                        <button type="button" class="px-6 py-2 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 transition" id="cancel-modal-btn">Hủy</button>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-sm">Gửi báo cáo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row justify-between items-center mb-6 pb-4 border-b border-gray-200">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Daily Report</h1>
+                <p class="text-md text-gray-500 mt-1">Dự án XYZ</p>
+            </div>
+            <button id="open-modal-btn" class="mt-4 sm:mt-0 w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition shadow-sm">
+                <ion-icon name="add-circle-outline" class="text-2xl"></ion-icon>
+                Tạo Báo Cáo Mới
+            </button>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="mb-8">
+            <div class="flex border-b border-gray-200">
+                <button data-tab="list-view" class="main-tab active py-3 px-6 text-lg font-medium border-b-2 border-transparent text-gray-500 hover:text-blue-600 transition">Danh sách Báo cáo</button>
+                <button data-tab="tracking-view" class="main-tab py-3 px-6 text-lg font-medium border-b-2 border-transparent text-gray-500 hover:text-blue-600 transition">Theo dõi Team</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main>
+            <!-- View 1: DANH SÁCH BÁO CÁO -->
+            <div id="list-view" class="tab-content">
+                 <!-- Sub-tabs -->
+                <div class="mb-6">
+                    <div class="flex space-x-2 bg-gray-200 p-1 rounded-lg w-full sm:w-auto">
+                        <button data-subtab="all-reports" class="sub-tab active flex-1 sm:flex-none px-4 py-2 text-sm font-semibold rounded-md transition">Tất cả</button>
+                        <button data-subtab="my-reports" class="sub-tab flex-1 sm:flex-none px-4 py-2 text-sm font-semibold rounded-md text-gray-600 transition">Của tôi</button>
+                    </div>
+                </div>
+                
+                <!-- Content for "Tất cả" -->
+                <div id="all-reports" class="subtab-content space-y-8">
+                    <!-- Group theo ngày -->
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-gray-200">Hôm nay, 01/07/2025</h2>
+                        <div class="space-y-4">
+                            <!-- Report Card (Blocker) -->
+                            <div class="p-5 bg-white rounded-xl shadow-md border-l-4 border-red-500">
+                                <div class="flex items-center">
+                                    <img src="https://i.pravatar.cc/150?u=c" class="w-10 h-10 rounded-full mr-3">
+                                    <span class="font-bold text-gray-900">Lê Văn C</span>
+                                    <span class="text-red-500 text-2xl ml-auto"><ion-icon name="alert-circle"></ion-icon></span>
+                                </div>
+                                <div class="mt-4 text-sm text-gray-600 space-y-3 pl-12">
+                                    <div><h3 class="font-semibold text-gray-500">Hôm nay</h3><p>Test chức năng xuất báo cáo.</p></div>
+                                    <div><h3 class="font-semibold text-gray-500">Ngày mai</h3><p>Viết tài liệu hướng dẫn.</p></div>
+                                    <div><h3 class="font-semibold text-gray-500">Vấn đề</h3><p class="text-red-600 font-semibold">Môi trường test bị lỗi. Cần hỗ trợ từ <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">@devops_team</span></p></div>
+                                </div>
+                            </div>
+                            <!-- Report Card (Normal) -->
+                            <div class="p-5 bg-white rounded-xl shadow-md border-l-4 border-green-500">
+                                <div class="flex items-center">
+                                    <img src="https://i.pravatar.cc/150?u=b" class="w-10 h-10 rounded-full mr-3">
+                                    <span class="font-bold text-gray-900">Trần Thị B</span>
+                                    <span class="text-green-500 text-2xl ml-auto"><ion-icon name="checkmark-circle"></ion-icon></span>
+                                </div>
+                                <div class="mt-4 text-sm text-gray-600 space-y-3 pl-12">
+                                    <div><h3 class="font-semibold text-gray-500">Hôm nay</h3><p>Sửa lỗi API thanh toán và review code.</p></div>
+                                    <div><h3 class="font-semibold text-gray-500">Ngày mai</h3><p>Tối ưu hóa query database.</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                     <!-- Group theo ngày khác -->
+                    <div>
+                        <h2 class="text-xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-gray-200">Hôm qua, 30/06/2025</h2>
+                        <div class="space-y-4">
+                             <div class="p-5 bg-white rounded-xl shadow-md border-l-4 border-green-500">
+                                <div class="flex items-center">
+                                    <img src="https://i.pravatar.cc/150?u=a" class="w-10 h-10 rounded-full mr-3">
+                                    <span class="font-bold text-gray-900">Nguyễn Văn A</span>
+                                    <span class="text-green-500 text-2xl ml-auto"><ion-icon name="checkmark-circle"></ion-icon></span>
+                                </div>
+                                <div class="mt-4 text-sm text-gray-600 space-y-3 pl-12">
+                                    <div><h3 class="font-semibold text-gray-500">Hôm nay</h3><p>Hoàn thành chức năng tìm kiếm.</p></div>
+                                    <div><h3 class="font-semibold text-gray-500">Ngày mai</h3><p>Tối ưu hóa hiệu năng.</p></div>
+                                </div>
+                            </div>
+                             <div class="p-5 bg-white rounded-xl shadow-md border-l-4 border-green-500">
+                                <div class="flex items-center">
+                                    <img src="https://i.pravatar.cc/150?u=b" class="w-10 h-10 rounded-full mr-3">
+                                    <span class="font-bold text-gray-900">Trần Thị B</span>
+                                    <span class="text-green-500 text-2xl ml-auto"><ion-icon name="checkmark-circle"></ion-icon></span>
+                                </div>
+                                <div class="mt-4 text-sm text-gray-600 space-y-3 pl-12">
+                                    <div><h3 class="font-semibold text-gray-500">Hôm nay</h3><p>Sửa lỗi API thanh toán.</p></div>
+                                    <div><h3 class="font-semibold text-gray-500">Ngày mai</h3><p>Tối ưu hóa query.</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                 <!-- Content for "Của tôi" -->
+                <div id="my-reports" class="subtab-content hidden space-y-4">
+                    <p class="text-gray-600">Báo cáo của Nguyễn Văn A</p>
+                    <div class="p-5 bg-white rounded-xl shadow-md border-l-4 border-green-500">
+                        <div class="flex items-center justify-between"><span class="font-bold text-gray-500">30/06/2025</span><span class="text-green-500 text-2xl"><ion-icon name="checkmark-circle"></ion-icon></span></div>
+                        <div class="mt-4 text-sm text-gray-600 space-y-3">
+                            <div><h3 class="font-semibold text-gray-500">Hôm nay</h3><p>Hoàn thành chức năng tìm kiếm sản phẩm.</p></div>
+                            <div><h3 class="font-semibold text-gray-500">Ngày mai</h3><p>Tối ưu hóa hiệu năng trang chủ.</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View 2: THEO DÕI TEAM -->
+            <div id="tracking-view" class="tab-content hidden">
+                <div class="bg-white p-6 rounded-xl shadow-md overflow-x-auto">
+                    <table class="w-full min-w-[800px] calendar-grid">
+                        <thead>
+                            <tr>
+                                <th class="w-1/4">Thành viên</th>
+                                <th>27/06</th>
+                                <th>28/06</th>
+                                <th>29/06 (CN)</th>
+                                <th>30/06</th>
+                                <th class="bg-blue-50">01/07 (Nay)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="member-name">Nguyễn Văn A</td>
+                                <td><span class="text-green-500 text-2xl"><ion-icon name="checkmark-circle"></ion-icon></span></td>
+                                <td class="report-cell" data-report-today="Fix bug giao diện mobile." data-report-tomorrow="Họp team." data-report-issue="Không có.">
+                                    <span class="text-green-500 text-2xl"><ion-icon name="checkmark-circle"></ion-icon></span>
+                                </td>
+                                <td class="bg-gray-100"></td>
+                                <td class="report-cell" data-report-today="Hoàn thành chức năng tìm kiếm." data-report-tomorrow="Tối ưu hóa hiệu năng." data-report-issue="Không có.">
+                                    <span class="text-green-500 text-2xl"><ion-icon name="checkmark-circle"></ion-icon></span>
+                                </td>
+                                <td><span class="text-yellow-500 text-2xl"><ion-icon name="ellipse-outline"></ion-icon></span></td>
+                            </tr>
+                             <tr>
+                                <td class="member-name">Trần Thị B</td>
+                                <td class="report-cell" data-report-today="Thiết kế database." data-report-tomorrow="Viết API." data-report-issue="Cần confirm schema.">
+                                    <span class="text-green-500 text-2xl"><ion-icon name="checkmark-circle"></ion-icon></span>
+                                </td>
+                                <td><span class="text-red-500 text-2xl"><ion-icon name="close-circle"></ion-icon></span></td>
+                                <td class="bg-gray-100"></td>
+                                <td class="report-cell" data-report-today="Sửa lỗi API thanh toán." data-report-tomorrow="Tối ưu hóa query." data-report-issue="Không có.">
+                                    <span class="text-green-500 text-2xl"><ion-icon name="checkmark-circle"></ion-icon></span>
+                                </td>
+                                <td class="report-cell" data-report-today="Sửa lỗi API thanh toán và review code." data-report-tomorrow="Tối ưu hóa query database." data-report-issue="Không có.">
+                                    <span class="text-green-500 text-2xl"><ion-icon name="checkmark-circle"></ion-icon></span>
+                                </td>
+                            </tr>
+                             <tr>
+                                <td class="member-name">Lê Văn C</td>
+                                <td><span class="text-green-500 text-2xl"><ion-icon name="checkmark-circle"></ion-icon></span></td>
+                                <td><span class="text-green-500 text-2xl"><ion-icon name="checkmark-circle"></ion-icon></span></td>
+                                <td class="bg-gray-100"></td>
+                                <td><span class="text-red-500 text-2xl"><ion-icon name="close-circle"></ion-icon></span></td>
+                                <td class="report-cell" data-report-today="Test chức năng xuất báo cáo." data-report-tomorrow="Viết tài liệu hướng dẫn." data-report-issue="Môi trường test bị lỗi. Cần hỗ trợ từ @devops_team">
+                                    <span class="text-red-500 text-2xl"><ion-icon name="alert-circle"></ion-icon></span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Chú thích ký hiệu -->
+                <div class="mt-6 bg-white p-4 rounded-lg shadow-md">
+                    <h4 class="font-bold text-lg mb-3">Chú thích</h4>
+                    <div class="flex flex-wrap gap-x-6 gap-y-3 text-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-500 text-2xl"><ion-icon name="checkmark-circle"></ion-icon></span>
+                            <span>Đã báo cáo</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-red-500 text-2xl"><ion-icon name="alert-circle"></ion-icon></span>
+                            <span>Có vấn đề (Blocker)</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-yellow-500 text-2xl"><ion-icon name="ellipse-outline"></ion-icon></span>
+                            <span>Chưa báo cáo</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-red-500 text-2xl"><ion-icon name="close-circle"></ion-icon></span>
+                            <span>Vắng / Không báo cáo</span>
+                        </div>
+                         <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 bg-gray-100 rounded"></div>
+                            <span>Ngày nghỉ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast fixed bottom-10 right-10 bg-green-500 text-white px-6 py-3 rounded-lg shadow-xl opacity-0 transform translate-y-5 flex items-center gap-3">
+        <ion-icon name="checkmark-done-circle" class="text-2xl"></ion-icon>
+        Báo cáo đã được gửi thành công!
+    </div>
+    
+    <!-- Tooltip for Calendar -->
+    <div id="tooltip" class="tooltip hidden absolute z-50 bg-gray-800 text-white text-sm rounded-lg shadow-lg p-3 max-w-xs"></div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- MODAL LOGIC ---
+            const openModalBtn = document.getElementById('open-modal-btn');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const cancelModalBtn = document.getElementById('cancel-modal-btn');
+            const reportModal = document.getElementById('report-modal');
+            const modalPanel = document.getElementById('modal-panel');
+
+            const openModal = () => reportModal.classList.remove('hidden');
+            const closeModal = () => {
+                modalPanel.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    reportModal.classList.add('hidden');
+                    modalPanel.classList.remove('scale-95', 'opacity-0');
+                }, 150);
+            };
+
+            openModalBtn.addEventListener('click', openModal);
+            closeModalBtn.addEventListener('click', closeModal);
+            cancelModalBtn.addEventListener('click', closeModal);
+            reportModal.addEventListener('click', (e) => {
+                if (e.target === reportModal) closeModal();
+            });
+
+            // --- FORM SUBMISSION & TOAST LOGIC ---
+            const reportForm = document.getElementById('report-form');
+            const toast = document.getElementById('toast');
+            reportForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                closeModal();
+                toast.classList.remove('opacity-0', 'translate-y-5');
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'translate-y-5');
+                }, 3000);
+                reportForm.reset();
+            });
+
+            // --- MAIN TABS LOGIC ---
+            const mainTabs = document.querySelectorAll('.main-tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            mainTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    mainTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const tabId = tab.getAttribute('data-tab');
+                    tabContents.forEach(content => {
+                        content.id === tabId ? content.classList.remove('hidden') : content.classList.add('hidden');
+                    });
+                });
+            });
+
+            // --- SUB TABS LOGIC ---
+            const subTabs = document.querySelectorAll('.sub-tab');
+            const subTabContents = document.querySelectorAll('.subtab-content');
+            subTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    subTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const subTabId = tab.getAttribute('data-subtab');
+                    subTabContents.forEach(content => {
+                        content.id === subTabId ? content.classList.remove('hidden') : content.classList.add('hidden');
+                    });
+                });
+            });
+
+            // --- TOOLTIP LOGIC FOR CALENDAR ---
+            const tooltip = document.getElementById('tooltip');
+            const reportCells = document.querySelectorAll('.report-cell');
+            reportCells.forEach(cell => {
+                cell.addEventListener('mousemove', e => {
+                    const reportToday = cell.dataset.reportToday || 'N/A';
+                    const reportTomorrow = cell.dataset.reportTomorrow || 'N/A';
+                    const reportIssue = cell.dataset.reportIssue || 'N/A';
+
+                    tooltip.innerHTML = `
+                        <div class="font-bold border-b border-gray-600 pb-1 mb-2">Chi tiết báo cáo</div>
+                        <p><strong class="text-gray-400">Hôm nay:</strong> ${reportToday}</p>
+                        <p><strong class="text-gray-400">Ngày mai:</strong> ${reportTomorrow}</p>
+                        <p><strong class="text-gray-400">Vấn đề:</strong> <span class="text-red-400">${reportIssue}</span></p>
+                    `;
+                    tooltip.classList.remove('hidden');
+                    tooltip.style.left = `${e.pageX + 15}px`;
+                    tooltip.style.top = `${e.pageY + 15}px`;
+                });
+                cell.addEventListener('mouseleave', () => {
+                    tooltip.classList.add('hidden');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
