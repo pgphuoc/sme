@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lộ trình Học Odoo cho Junior</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony (Slate/White neutrals with a muted Blue accent) -->
+    <!-- Application Structure Plan: A single-page "Learning Pathway" design. A fixed vertical navigation on the left allows users to jump to key topics (Architecture, Flows, Security, Module Building, Project). This non-linear structure aids self-paced learning and quick reference, which is more effective for a technical guide than a simple document scroll. Content for each topic is loaded into the main panel, using interactive elements like clickable diagrams and tabbed code viewers to enhance engagement and understanding. -->
+    <!-- Visualization & Content Choices:
+        - Report Info: 3-Tier Architecture -> Goal: Inform -> Viz: 3-column interactive card layout (HTML/CSS) -> Interaction: Hover to show details. Justification: More visually engaging than a list. Library: None.
+        - Report Info: O2C & P2P Flows -> Goal: Organize/Show Change -> Viz: Step-by-step process flow diagrams (HTML/CSS) -> Interaction: Click a step to highlight and see details. Justification: Breaks down complex processes into digestible, interactive steps, replacing static Mermaid diagrams. Library: None.
+        - Report Info: Security Layers -> Goal: Inform/Compare -> Viz: Layered "funnel" diagram (HTML/CSS) and tabbed content for examples -> Interaction: Click a layer to view code/explanation. Justification: Visualizes the hierarchy of security checks effectively. Library: None.
+        - Report Info: User Types -> Goal: Inform -> Viz: Doughnut Chart -> Interaction: Hover to see labels. Justification: Adds visual variety and quickly illustrates the concept of different user scopes. Library: Chart.js.
+        - Report Info: Code examples -> Goal: Instruct -> Viz: Tabbed code viewers with syntax highlighting style and copy buttons -> Interaction: Switch tabs to see different files, click to copy code. Justification: Simulates an IDE, making code easy to read and use. Library: Vanilla JS for interaction.
+        -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
+        .nav-link { transition: all 0.2s ease-in-out; }
+        .nav-link.active { background-color: #EBF4FF; color: #2C5282; font-weight: 600; }
+        .code-block {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            position: relative;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: #4a5568;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .copy-btn:hover { background-color: #718096; }
+        .tab-btn.active { border-bottom: 2px solid #3B82F6; color: #3B82F6; font-weight: 600; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .flow-step { cursor: pointer; transition: all 0.3s ease; }
+        .flow-step.active {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: #3B82F6;
+        }
+        .flow-arrow {
+            font-size: 2rem;
+            color: #9CA3AF;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="flex h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-white border-r border-slate-200 p-4 flex-shrink-0">
+            <h1 class="text-xl font-bold text-slate-900 mb-8">Lộ trình Học Odoo</h1>
+            <nav id="main-nav" class="space-y-2">
+                <a href="#intro" class="nav-link flex items-center px-4 py-2 text-slate-600 rounded-md hover:bg-slate-100">
+                    <span class="mr-3">👋</span> Giới thiệu
+                </a>
+                <a href="#architecture" class="nav-link flex items-center px-4 py-2 text-slate-600 rounded-md hover:bg-slate-100">
+                    <span class="mr-3">🏛️</span> Kiến trúc Hệ thống
+                </a>
+                 <a href="#flows" class="nav-link flex items-center px-4 py-2 text-slate-600 rounded-md hover:bg-slate-100">
+                    <span class="mr-3">🌊</span> Luồng Nghiệp vụ
+                </a>
+                <a href="#security" class="nav-link flex items-center px-4 py-2 text-slate-600 rounded-md hover:bg-slate-100">
+                    <span class="mr-3">🛡️</span> Quản lý Phân quyền
+                </a>
+                <a href="#module-building" class="nav-link flex items-center px-4 py-2 text-slate-600 rounded-md hover:bg-slate-100">
+                    <span class="mr-3">🧱</span> Xây dựng Module
+                </a>
+                <a href="#project" class="nav-link flex items-center px-4 py-2 text-slate-600 rounded-md hover:bg-slate-100">
+                    <span class="mr-3">🚀</span> Dự án Thực tế
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-8 lg:p-12">
+            <div id="intro" class="content-section">
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Chào mừng đến với Hướng dẫn Odoo Toàn diện</h2>
+                <p class="text-lg text-slate-600 mb-6">Tài liệu này được biên soạn nhằm cung cấp một lộ trình học tập và phát triển toàn diện cho các lập trình viên Odoo ở cấp độ junior. Mục tiêu là trang bị cho bạn không chỉ kiến thức "làm thế nào" (how-to) mà còn cả sự hiểu biết sâu sắc về "tại sao" (why), giúp bạn xây dựng nền tảng vững chắc để trở thành một chuyên gia Odoo trong tương lai.</p>
+                <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md" role="alert">
+                    <p class="font-bold">Bắt đầu hành trình của bạn</p>
+                    <p>Hãy sử dụng thanh điều hướng bên trái để khám phá các chủ đề, từ kiến trúc tổng quan, quản lý bảo mật, đến quy trình phát triển module và một dự án thực tế để áp dụng tất cả kiến thức đã học.</p>
+                </div>
+            </div>
+
+            <div id="architecture" class="content-section">
+                <h2 class="text-3xl font-bold text-slate-900 mb-2">Kiến trúc Hệ thống Odoo</h2>
+                 <p class="text-lg text-slate-600 mb-8">Để phát triển hiệu quả, việc đầu tiên và quan trọng nhất là phải hiểu rõ kiến trúc nền tảng của Odoo. Odoo được xây dựng dựa trên kiến trúc 3 lớp, một mô hình phân chia ứng dụng thành ba tầng logic và vật lý riêng biệt, đảm bảo tính linh hoạt, khả năng mở rộng và bảo trì.</p>
+                
+                <div class="grid md:grid-cols-3 gap-8 text-center">
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                        <div class="text-4xl mb-4">🖥️</div>
+                        <h3 class="text-xl font-semibold mb-2 text-slate-900">Tầng Trình bày (Presentation)</h3>
+                        <p class="text-slate-600">Giao diện người dùng chạy trên trình duyệt. Sử dụng JavaScript (Owl Framework), HTML, CSS để hiển thị dữ liệu và gửi yêu cầu người dùng đến máy chủ qua JSON-RPC.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                         <div class="text-4xl mb-4">⚙️</div>
+                        <h3 class="text-xl font-semibold mb-2 text-slate-900">Tầng Ứng dụng (Application)</h3>
+                        <p class="text-slate-600">"Bộ não" của Odoo, viết bằng Python. Chứa toàn bộ logic nghiệp vụ, quy trình xử lý và đặc biệt là bộ máy ORM (Object-Relational Mapping) mạnh mẽ để giao tiếp với cơ sở dữ liệu.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                        <div class="text-4xl mb-4">💾</div>
+                        <h3 class="text-xl font-semibold mb-2 text-slate-900">Tầng Dữ liệu (Data)</h3>
+                        <p class="text-slate-600">Hệ quản trị cơ sở dữ liệu PostgreSQL. Chịu trách nhiệm lưu trữ, truy xuất và quản lý toàn bộ dữ liệu ứng dụng và cấu hình hệ thống một cách bền vững và an toàn.</p>
+                    </div>
+                </div>
+
+                <h3 class="text-2xl font-bold text-slate-900 mt-12 mb-4">Mô hình Model-View-Controller (MVC)</h3>
+                <p class="text-slate-600 mb-6">Bên trong Tầng Ứng dụng, Odoo sử dụng mẫu thiết kế MVC để tổ chức mã nguồn một cách hiệu quả. Đừng nhầm lẫn MVC với kiến trúc 3 lớp: kiến trúc 3 lớp là bản thiết kế của tòa nhà, còn MVC là cách bố trí các phòng bên trong.</p>
+                <div class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                    <ul class="space-y-4">
+                        <li><strong><span class="font-semibold text-blue-600">Model:</span></strong> Các lớp Python kế thừa từ `models.Model`, đại diện cho cấu trúc dữ liệu và logic nghiệp vụ. ORM sẽ ánh xạ chúng thành các bảng trong database.</li>
+                        <li><strong><span class="font-semibold text-green-600">View:</span></strong> Các tệp XML định nghĩa giao diện người dùng (Form, List, Kanban...). Odoo đọc XML và sinh ra HTML tương ứng.</li>
+                        <li><strong><span class="font-semibold text-amber-600">Controller:</span></strong> Các phương thức trong Model, xử lý tương tác của người dùng, thao tác dữ liệu và quyết định View nào sẽ hiển thị tiếp theo.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="flows" class="content-section">
+                <h2 class="text-3xl font-bold text-slate-900 mb-2">Luồng Nghiệp vụ Cốt lõi</h2>
+                <p class="text-lg text-slate-600 mb-8">Sức mạnh của Odoo nằm ở sự tích hợp liền mạch giữa các module. Một hành động có thể kích hoạt một chuỗi quy trình tự động. Hãy khám phá hai luồng nghiệp vụ quan trọng nhất: Từ Bán hàng đến Thu tiền (O2C) và Từ Mua hàng đến Thanh toán (P2P).</p>
+                
+                <div id="flow-container">
+                    <!-- Flow content will be injected here by JS -->
+                </div>
+            </div>
+            
+            <div id="security" class="content-section">
+                <h2 class="text-3xl font-bold text-slate-900 mb-2">Quản lý Người dùng & Phân quyền</h2>
+                <p class="text-lg text-slate-600 mb-8">Bảo mật là khía cạnh tối quan trọng. Odoo cung cấp một cơ chế phân quyền đa lớp mạnh mẽ. Hiểu rõ cơ chế này là yêu cầu bắt buộc đối với mọi lập trình viên.</p>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-4">Các Lớp Bảo mật</h3>
+                        <p class="text-slate-600 mb-6">Một yêu cầu truy cập dữ liệu của người dùng phải đi qua nhiều "cánh cổng" bảo mật. Nếu bị chặn ở bất kỳ cổng nào, yêu cầu sẽ bị từ chối.</p>
+                        <div id="security-layers" class="space-y-4">
+                            <!-- Security layers will be injected by JS -->
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">Phân loại Người dùng Odoo</h3>
+                        <p class="text-slate-600 mb-4">Odoo phân biệt 3 loại người dùng chính, mỗi loại có một mức độ truy cập khác nhau.</p>
+                        <div class="chart-container relative h-64 md:h-80 w-full max-w-sm mx-auto">
+                            <canvas id="userTypesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="security-details" class="mt-8 bg-white p-6 rounded-lg shadow-md border border-slate-200">
+                     <!-- Security details will be injected by JS -->
+                </div>
+            </div>
+            
+            <div id="module-building" class="content-section">
+                <h2 class="text-3xl font-bold text-slate-900 mb-2">Xây dựng một Module Odoo từ A-Z</h2>
+                <p class="text-lg text-slate-600 mb-8">Phần này sẽ hướng dẫn bạn từng bước để tạo ra một module Odoo hoàn chỉnh từ đầu, từ cấu trúc thư mục đến việc hiển thị module trên giao diện người dùng.</p>
+                <div id="module-steps-container">
+                    <!-- Module building steps will be injected by JS -->
+                </div>
+            </div>
+            
+            <div id="project" class="content-section">
+                <h2 class="text-3xl font-bold text-slate-900 mb-2">Dự án Thực tế: Module "Mua hàng" Tùy chỉnh</h2>
+                 <p class="text-lg text-slate-600 mb-8">Áp dụng tất cả các khái niệm đã học để xây dựng một phiên bản đơn giản của module Mua hàng. Hãy khám phá cách các thành phần khác nhau kết hợp lại để tạo thành một ứng dụng hoàn chỉnh.</p>
+                 <div class="bg-white rounded-lg shadow-md border border-slate-200">
+                    <div id="project-tabs" class="border-b border-slate-200">
+                        <!-- Project tabs will be injected by JS -->
+                    </div>
+                    <div id="project-content" class="p-6">
+                        <!-- Project content will be injected by JS -->
+                    </div>
+                 </div>
+            </div>
+
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const navLinks = document.querySelectorAll('#main-nav a');
+    const contentSections = document.querySelectorAll('.content-section');
+
+    function updateContent(hash) {
+        hash = hash || window.location.hash || '#intro';
+
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') === hash) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+
+        contentSections.forEach(section => {
+            if ('#' + section.id === hash) {
+                section.classList.add('active');
+            } else {
+                section.classList.remove('active');
+            }
+        });
+        
+        // Lazy load content
+        if (hash === '#architecture' && !document.querySelector('#architecture').dataset.loaded) {
+            document.querySelector('#architecture').dataset.loaded = 'true';
+        }
+        if (hash === '#flows' && !document.querySelector('#flows').dataset.loaded) {
+            initFlows();
+            document.querySelector('#flows').dataset.loaded = 'true';
+        }
+        if (hash === '#security' && !document.querySelector('#security').dataset.loaded) {
+            initSecuritySection();
+            document.querySelector('#security').dataset.loaded = 'true';
+        }
+        if (hash === '#module-building' && !document.querySelector('#module-building').dataset.loaded) {
+            initModuleBuildingSection();
+            document.querySelector('#module-building').dataset.loaded = 'true';
+        }
+        if (hash === '#project' && !document.querySelector('#project').dataset.loaded) {
+            initProjectSection();
+            document.querySelector('#project').dataset.loaded = 'true';
+        }
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const hash = this.getAttribute('href');
+            history.pushState(null, null, hash);
+            updateContent(hash);
+        });
+    });
+
+    window.addEventListener('popstate', () => updateContent(window.location.hash));
+    updateContent(); 
+
+    function initFlows() {
+        const container = document.getElementById('flow-container');
+        const flows = {
+            o2c: {
+                title: "Luồng Order-to-Cash (O2C) - Từ Bán hàng đến Thu tiền",
+                steps: [
+                    { title: "Tạo Đơn hàng", model: "sale.order", icon: "📝", details: "Nhân viên kinh doanh xác nhận báo giá và tạo một Đơn hàng. Đây là điểm khởi đầu của quy trình bán hàng." },
+                    { title: "Tạo Lệnh Giao hàng", model: "stock.picking", icon: "🚚", details: "Hệ thống tự động tạo Lệnh Giao hàng để giữ trước (reserve) hàng hóa trong kho. Tồn kho chưa bị trừ tại bước này." },
+                    { title: "Cập nhật Tồn kho", model: "stock.move", icon: "📦", details: "Nhân viên kho xác nhận Lệnh Giao hàng. Chỉ tại thời điểm này, số lượng tồn kho thực tế mới bị trừ đi." },
+                    { title: "Tạo Hóa đơn", model: "account.move", icon: "🧾", details: "Dựa trên chính sách, hệ thống tạo ra một Hóa đơn khách hàng trong module Kế toán." },
+                    { title: "Ghi nhận Thanh toán", model: "account.payment", icon: "💰", details: "Kế toán viên ghi nhận thanh toán từ khách hàng và đối soát nó với hóa đơn, hoàn tất quy trình." }
+                ]
+            },
+            p2p: {
+                title: "Luồng Procure-to-Pay (P2P) - Từ Mua hàng đến Thanh toán",
+                steps: [
+                    { title: "Tạo Đơn mua hàng", model: "purchase.order", icon: "🛒", details: "Nhân viên mua hàng tạo và xác nhận một Đơn mua hàng với nhà cung cấp." },
+                    { title: "Tạo Lệnh Nhận hàng", model: "stock.picking", icon: "📥", details: "Hệ thống tự động tạo Lệnh Nhận hàng để chuẩn bị cho việc nhập hàng hóa vào kho." },
+                    { title: "Cập nhật Tồn kho", model: "stock.move", icon: "📦", details: "Khi hàng về, nhân viên kho xác nhận Lệnh Nhận hàng, làm tăng số lượng tồn kho của sản phẩm." },
+                    { title: "Tạo Hóa đơn NCC", model: "account.move", icon: "🧾", details: "Hệ thống tạo ra một Hóa đơn nhà cung cấp trong Kế toán, chờ được thanh toán." },
+                    { title: "Thực hiện Thanh toán", model: "account.payment", icon: "💳", details: "Kế toán viên thực hiện thanh toán cho nhà cung cấp và đối soát giao dịch, kết thúc quy trình." }
+                ]
+            }
+        };
+
+        let html = '';
+        for (const key in flows) {
+            const flow = flows[key];
+            html += `<div class="mb-12">
+                <h3 class="text-2xl font-bold text-slate-900 mb-6">${flow.title}</h3>
+                <div class="relative">
+                    <div class="flex items-center justify-between space-x-2 md:space-x-4">
+                        ${flow.steps.map((step, index) => `
+                            <div class="flow-step flex-1 bg-white p-4 rounded-lg shadow-md border-2 border-transparent" data-flow="${key}" data-step="${index}">
+                                <div class="text-3xl mb-2">${step.icon}</div>
+                                <h4 class="font-semibold text-sm md:text-base">${step.title}</h4>
+                                <p class="text-xs text-slate-500 hidden md:block">${step.model}</p>
+                            </div>
+                            ${index < flow.steps.length - 1 ? `<div class="flow-arrow text-slate-300 mx-1 md:mx-2">→</div>` : ''}
+                        `).join('')}
+                    </div>
+                    <div id="flow-details-${key}" class="mt-4 p-4 bg-blue-50 rounded-md border border-blue-200 text-blue-800 hidden"></div>
+                </div>
+            </div>`;
+        }
+        container.innerHTML = html;
+        
+        document.querySelectorAll('.flow-step').forEach(stepEl => {
+            stepEl.addEventListener('click', () => {
+                const flowKey = stepEl.dataset.flow;
+                const stepIndex = parseInt(stepEl.dataset.step);
+
+                document.querySelectorAll(`.flow-step[data-flow="${flowKey}"]`).forEach(el => el.classList.remove('active'));
+                stepEl.classList.add('active');
+
+                const detailsContainer = document.getElementById(`flow-details-${flowKey}`);
+                detailsContainer.innerHTML = `<p><strong>${flows[flowKey].steps[stepIndex].title}:</strong> ${flows[flowKey].steps[stepIndex].details}</p>`;
+                detailsContainer.style.display = 'block';
+            });
+        });
+    }
+
+    function initSecuritySection() {
+        const layersContainer = document.getElementById('security-layers');
+        const detailsContainer = document.getElementById('security-details');
+
+        const layers = [
+            { id: 'acl', title: 'Lớp 1: Access Control List (ACLs)', description: 'Kiểm soát quyền truy cập Read, Write, Create, Unlink trên toàn bộ Model.', icon: '🔑', file: 'ir.model.access.csv' },
+            { id: 'record', title: 'Lớp 2: Record Rules', description: 'Lọc các bản ghi cụ thể mà người dùng được phép xem/sửa.', icon: '🔎', file: 'security.xml' },
+            { id: 'field', title: 'Lớp 3: Field & View Level', description: 'Ẩn/hiện các trường, nút bấm, menu trên giao diện người dùng.', icon: '👁️', file: 'views.xml / models.py' },
+        ];
+        
+        const details = {
+            acl: {
+                title: 'Ví dụ: ir.model.access.csv',
+                explanation: 'Tệp CSV này cấp quyền cho một nhóm người dùng. Cột `group_id:id` xác định nhóm, các cột `perm_*` xác định quyền (1=cho phép, 0=từ chối). Luôn chỉ định nhóm cụ thể để tránh rò rỉ dữ liệu.',
+                codeLang: 'csv',
+                code: `id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_custom_po_user,po.user,model_custom_purchase_order,my_module.group_purchase_user,1,1,1,0
+access_custom_po_manager,po.manager,model_custom_purchase_order,my_module.group_purchase_manager,1,1,1,1`
+            },
+            record: {
+                title: 'Ví dụ: Record Rule trong security.xml',
+                explanation: 'Rule này dùng một `domain_force` để lọc dữ liệu. Ví dụ này chỉ cho phép người dùng thấy các đơn hàng do chính họ tạo ra (`user_id` bằng với `user.id` của người đăng nhập).',
+                codeLang: 'xml',
+                code: `<record id="purchase_order_user_rule" model="ir.rule">
+    <field name="name">Purchase Order User Rule</field>
+    <field name="model_id" ref="model_custom_purchase_order"/>
+    <field name="domain_force">[('user_id', '=', user.id)]</field>
+    <field name="groups" eval="[(4, ref('my_module.group_purchase_user'))]"/>
+</record>`
+            },
+            field: {
+                title: 'Ví dụ: Phân quyền trên View và Field',
+                explanation: 'Thuộc tính `groups` có thể được dùng trong XML để ẩn/hiện các thành phần giao diện, hoặc trong Python để bảo vệ trường dữ liệu ở cấp độ ORM, đảm bảo an toàn tuyệt đối.',
+                codeLang: 'xml',
+                code: `<!-- Trong XML View -->
+<button name="action_approve" string="Approve"
+    groups="my_module.group_purchase_manager"
+    type="object"/>
+
+<!-- Trong Python Model -->
+salary = fields.Float(string="Salary", groups="hr.group_hr_manager")`
+            }
+        };
+
+        layersContainer.innerHTML = layers.map((layer, index) => `
+            <div id="layer-btn-${layer.id}" class="security-layer-btn p-4 bg-white rounded-lg shadow-sm border flex items-center cursor-pointer hover:shadow-lg hover:border-blue-500 transition-all duration-300" style="margin-left: ${index * 2}rem;">
+                <span class="text-3xl mr-4">${layer.icon}</span>
+                <div>
+                    <h4 class="font-semibold text-slate-900">${layer.title}</h4>
+                    <p class="text-slate-500 text-sm">${layer.description}</p>
+                </div>
+                <span class="ml-auto text-xs font-mono bg-slate-100 text-slate-600 px-2 py-1 rounded">${layer.file}</span>
+            </div>
+            ${index < layers.length - 1 ? `<div class="text-center text-slate-400 text-2xl" style="margin-left: ${index * 2 + 1}rem;">↓</div>` : ''}
+        `).join('');
+
+        function showDetails(layerId) {
+            const detail = details[layerId];
+            detailsContainer.innerHTML = `
+                <h4 class="text-xl font-semibold text-slate-900 mb-3">${detail.title}</h4>
+                <p class="text-slate-600 mb-4">${detail.explanation}</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre><code class="language-${detail.codeLang}">${escapeHtml(detail.code)}</code></pre>
+                </div>
+            `;
+            document.querySelectorAll('.security-layer-btn').forEach(btn => btn.classList.remove('bg-blue-50', 'border-blue-500'));
+            document.getElementById(`layer-btn-${layerId}`).classList.add('bg-blue-50', 'border-blue-500');
+        }
+
+        document.querySelectorAll('.security-layer-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const layerId = btn.id.replace('layer-btn-', '');
+                showDetails(layerId);
+            });
+        });
+        showDetails('acl');
+        
+        new Chart(document.getElementById('userTypesChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Internal User (Nhân viên)', 'Portal User (Khách hàng)', 'Public User (Công khai)'],
+                datasets: [{
+                    label: 'Phân loại người dùng',
+                    data: [65, 25, 10],
+                    backgroundColor: ['#3B82F6', '#10B981', '#F59E0B'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed + '% (ước tính)';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function initModuleBuildingSection() {
+        const container = document.getElementById('module-steps-container');
+        const steps = [
+            { 
+                title: 'Bước 1: Cấu trúc Thư mục', 
+                description: 'Tạo cấu trúc thư mục chuẩn. Odoo dựa vào cấu trúc này để nhận diện và tải module.',
+                codeLang: 'bash',
+                code: `custom_module/
+├── __init__.py
+├── __manifest__.py
+├── models/
+│   ├── __init__.py
+│   └── custom_model.py
+├── views/
+│   └── custom_view.xml
+└── security/
+    └── ir.model.access.csv`
+            },
+            { 
+                title: 'Bước 2: Tệp __manifest__.py', 
+                description: 'Khai báo siêu dữ liệu của module. Khóa `data` rất quan trọng, Odoo tải các tệp theo đúng thứ tự này.',
+                codeLang: 'python',
+                code: `{
+    'name': 'My Custom Module',
+    'version': '1.0.0',
+    'depends': ['base'],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/custom_view.xml',
+    ],
+    'application': True,
+}`
+            },
+            { 
+                title: 'Bước 3: Định nghĩa Model', 
+                description: 'Tạo lớp Python kế thừa từ `models.Model` để định nghĩa đối tượng nghiệp vụ. ORM sẽ tự động tạo bảng trong DB.',
+                codeLang: 'python',
+                code: `from odoo import models, fields
+
+class CustomModel(models.Model):
+    _name = 'custom.model'
+    _description = 'My Custom Model'
+
+    name = fields.Char(string='Name', required=True)
+    active = fields.Boolean(default=True)`
+            },
+            { 
+                title: 'Bước 4: Định nghĩa View', 
+                description: 'Sử dụng XML để tạo giao diện người dùng (List view và Form view). Mỗi view là một bản ghi của `ir.ui.view`.',
+                codeLang: 'xml',
+                code: `<odoo>
+    <record id="view_custom_model_tree" model="ir.ui.view">
+        <field name="name">custom.model.tree</field>
+        <field name="model">custom.model</field>
+        <field name="arch" type="xml">
+            <tree><field name="name"/></tree>
+        </field>
+    </record>
+</odoo>`
+            },
+             { 
+                title: 'Bước 5: Actions & Menus', 
+                description: 'Tạo Window Action để liên kết model với view, và Menu Item để người dùng có thể truy cập.',
+                codeLang: 'xml',
+                code: `<record id="action_custom_model" model="ir.actions.act_window">
+    <field name="name">Custom Models</field>
+    <field name="res_model">custom.model</field>
+    <field name="view_mode">tree,form</field>
+</record>
+
+<menuitem id="menu_custom_root" name="My App"/>
+<menuitem id="menu_custom_model" name="My Models"
+    parent="menu_custom_root" action="action_custom_model"/>`
+            },
+             { 
+                title: 'Bước 6: Cài đặt', 
+                description: 'Khởi động lại server Odoo, bật chế độ Developer, vào Apps > Update Apps List, tìm và cài đặt module của bạn.',
+                codeLang: 'bash',
+                code: `# 1. Restart Odoo server
+# 2. Activate Developer Mode
+# 3. Go to Apps menu
+# 4. Click Update Apps List
+# 5. Search for "My Custom Module" and click Install`
+            }
+        ];
+
+        container.innerHTML = steps.map((step, index) => `
+            <div class="bg-white p-6 rounded-lg shadow-md border border-slate-200 mb-6">
+                <h3 class="text-2xl font-bold text-slate-900 mb-3">${step.title}</h3>
+                <p class="text-slate-600 mb-4">${step.description}</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre><code class="language-${step.codeLang}">${escapeHtml(step.code)}</code></pre>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function initProjectSection() {
+        const tabsContainer = document.getElementById('project-tabs');
+        const contentContainer = document.getElementById('project-content');
+
+        const files = {
+            models: { 
+                name: 'models/custom_purchase.py',
+                lang: 'python',
+                code: `from odoo import models, fields, api
+
+class CustomPurchaseOrder(models.Model):
+    _name = 'custom.purchase.order'
+    _inherit = ['mail.thread']
+    _description = 'Custom Purchase Order'
+
+    name = fields.Char(string='Order Reference', required=True, copy=False, readonly=True, default=lambda self: 'New')
+    partner_id = fields.Many2one('res.partner', string='Vendor', required=True)
+    user_id = fields.Many2one('res.users', string='Purchase Rep', default=lambda self: self.env.user)
+    order_line = fields.One2many('custom.purchase.order.line', 'order_id', string='Order Lines')
+    state = fields.Selection([('draft', 'Draft'), ('confirmed', 'Confirmed')], string='Status', default='draft')
+
+    @api.model
+    def create(self, vals):
+        if vals.get('name', 'New') == 'New':
+            vals['name'] = self.env['ir.sequence'].next_by_code('custom.purchase.order') or 'New'
+        return super(CustomPurchaseOrder, self).create(vals)
+
+    def action_confirm(self):
+        self.write({'state': 'confirmed'})
+
+class CustomPurchaseOrderLine(models.Model):
+    _name = 'custom.purchase.order.line'
+    _description = 'Custom Purchase Order Line'
+
+    order_id = fields.Many2one('custom.purchase.order', string='Order Reference', ondelete='cascade')
+    product_id = fields.Many2one('product.product', string='Product', required=True)
+    product_qty = fields.Float(string='Quantity', default=1.0)
+`
+            },
+            views: {
+                name: 'views/custom_purchase_views.xml',
+                lang: 'xml',
+                code: `<odoo>
+    <record id="view_custom_purchase_order_form" model="ir.ui.view">
+        <field name="model">custom.purchase.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="oe_highlight" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <h1><field name="name"/></h1>
+                    <group>
+                        <field name="partner_id"/>
+                        <field name="user_id"/>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field name="order_line">
+                                <tree editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="product_qty"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <record id="action_custom_purchase_order" model="ir.actions.act_window">
+        <field name="name">Custom Purchase Orders</field>
+        <field name="res_model">custom.purchase.order</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_custom_purchase_root" name="Custom Purchase"/>
+    <menuitem id="menu_custom_purchase_order" name="Orders" parent="menu_custom_purchase_root" action="action_custom_purchase_order"/>
+</odoo>
+`
+            },
+            security: {
+                name: 'security/purchase_security.xml',
+                lang: 'xml',
+                code: `<odoo>
+    <record id="module_category_custom_purchase" model="ir.module.category">
+        <field name="name">Custom Purchase</field>
+    </record>
+    <record id="group_custom_purchase_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="category_id" ref="module_category_custom_purchase"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+    <record id="group_custom_purchase_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="category_id" ref="module_category_custom_purchase"/>
+        <field name="implied_ids" eval="[(4, ref('group_custom_purchase_user'))]"/>
+    </record>
+
+    <!-- Record Rule for User -->
+    <record id="custom_purchase_order_user_rule" model="ir.rule">
+        <field name="name">Custom PO User Rule</field>
+        <field name="model_id" ref="model_custom_purchase_order"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_custom_purchase_user'))]"/>
+    </record>
+</odoo>
+`
+            },
+            acl: {
+                name: 'security/ir.model.access.csv',
+                lang: 'csv',
+                code: `id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_custom_po_user,custom.po.user,model_custom_purchase_order,group_custom_purchase_user,1,1,1,0
+access_custom_po_manager,custom.po.manager,model_custom_purchase_order,group_custom_purchase_manager,1,1,1,1
+access_custom_po_line_user,custom.po.line.user,model_custom_purchase_order_line,group_custom_purchase_user,1,1,1,1
+`
+            }
+        };
+
+        tabsContainer.innerHTML = `<div class="flex space-x-4 px-6">
+            ${Object.keys(files).map(key => `
+                <button class="tab-btn py-3 px-1 text-sm text-slate-500" data-tab="${key}">${files[key].name}</button>
+            `).join('')}
+        </div>`;
+        
+        contentContainer.innerHTML = Object.keys(files).map(key => `
+            <div id="tab-content-${key}" class="tab-content">
+                 <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre><code class="language-${files[key].lang}">${escapeHtml(files[key].code)}</code></pre>
+                </div>
+            </div>
+        `).join('');
+
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        function switchTab(tabKey) {
+            tabButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tab === tabKey);
+            });
+            tabContents.forEach(content => {
+                content.classList.toggle('active', content.id === `tab-content-${tabKey}`);
+            });
+        }
+        
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                switchTab(btn.dataset.tab);
+            });
+        });
+
+        // Show first tab by default
+        switchTab('models');
+    }
+});
+
+function copyCode(button) {
+    const codeBlock = button.nextElementSibling;
+    const textToCopy = codeBlock.innerText;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        button.innerText = 'Copied!';
+        setTimeout(() => {
+            button.innerText = 'Copy';
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+    });
+}
+
+function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+ }
+</script>
+
+</body>
+</html>
