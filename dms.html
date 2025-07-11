@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang Quản Lý Check-in Của Nhân Viên</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- LeafletJS CSS & JS for Interactive Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Leaflet Routing Machine CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+            border-radius: 0.5rem;
+        }
+        .leaflet-popup-content-wrapper {
+            border-radius: 0.5rem;
+        }
+        .list-item-selected {
+            background-color: #e0f2fe; /* light blue */
+            border-left: 4px solid #0ea5e9; /* sky-500 */
+        }
+        /* Custom numbered icon for Leaflet */
+        .leaflet-div-icon {
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            line-height: 26px; /* Adjust based on icon size */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        /* Hide the default routing machine itinerary */
+        .leaflet-routing-container {
+            display: none;
+        }
+        /* Style for the map legend */
+        .legend {
+            padding: 6px 10px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            line-height: 24px;
+        }
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            border-radius: 50%;
+            border: 1px solid #ccc;
+        }
+        .legend .route {
+            width: 18px;
+            height: 4px;
+            float: left;
+            margin-right: 8px;
+            margin-top: 10px;
+            border: none;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="flex flex-col h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-md p-4 z-20">
+            <h1 class="text-2xl font-bold text-gray-800">
+                <i class="fas fa-map-marked-alt mr-2 text-sky-600"></i>Bảng Điều Khiển Check-in
+            </h1>
+        </header>
+
+        <!-- Filters Bar -->
+        <div class="bg-white p-3 shadow z-10">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-center gap-4">
+                 <h2 class="text-lg font-semibold text-gray-700 hidden lg:block col-span-1">
+                    <i class="fas fa-filter mr-2 text-gray-500"></i>Bộ lọc:
+                </h2>
+                <div class="w-full">
+                    <label for="date-filter" class="sr-only">Ngày</label>
+                    <input type="date" id="date-filter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2.5" title="Chọn ngày">
+                </div>
+                <div class="w-full">
+                    <label for="employee-filter" class="sr-only">Nhân viên</label>
+                    <select id="employee-filter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2.5" title="Chọn nhân viên">
+                        <option value="all">Tất cả nhân viên</option>
+                    </select>
+                </div>
+                <div class="w-full">
+                    <label for="region-filter" class="sr-only">Khu vực</label>
+                    <select id="region-filter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2.5" title="Chọn khu vực">
+                        <option value="all">Tất cả khu vực</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-grow flex flex-col md:flex-row p-4 gap-4 overflow-hidden">
+            
+            <!-- Left Panel: List -->
+            <div class="w-full md:w-1/3 lg:w-1/4 flex flex-col">
+                <div class="bg-white p-4 rounded-lg shadow flex-grow flex flex-col overflow-hidden">
+                    <div class="border-b pb-2 mb-3">
+                        <h2 id="checkin-list-title" class="text-lg font-semibold">Kế hoạch trong ngày</h2>
+                        <p id="checkin-summary" class="text-sm text-gray-600 mt-1"></p>
+                    </div>
+                    <div id="checkin-list" class="overflow-y-auto space-y-3 pr-2 flex-grow">
+                        <!-- Check-in items will be injected here by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Map -->
+            <div class="w-full md:w-2/3 lg:w-3/4 bg-white rounded-lg shadow p-2 relative">
+                <div id="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- MOCK DATA ---
+        const today = new Date();
+        const todayStr = today.toISOString().slice(0, 10);
+        const oneWeekAgo = new Date(today);
+        oneWeekAgo.setDate(today.getDate() - 7);
+        const oneWeekAgoStr = oneWeekAgo.toISOString().slice(0, 10);
+
+        const employees = [
+            { id: 'NV01', name: 'Nguyễn Văn An' },
+            { id: 'NV02', name: 'Trần Thị Bình' },
+            { id: 'NV03', name: 'Lê Minh Cường' }
+        ];
+        const regions = [
+            { id: 'HC', name: 'Quận Hải Châu', center: [16.047079, 108.206230], zoom: 14 },
+            { id: 'ST', name: 'Quận Sơn Trà', center: [16.0805, 108.2422], zoom: 14 },
+            { id: 'LC', name: 'Quận Liên Chiểu', center: [16.1035, 108.1408], zoom: 13 }
+        ];
+        const visits = [
+            // NV01 - Nguyễn Văn An
+            { id: 'V001', employeeId: 'NV01', customerName: 'Tạp hóa cô Hoa', storeName: 'Tạp hóa cô Hoa', phone: '0905111222', isPotential: false, creationDate: '2023-01-15', taskContent: 'Kiểm tra tồn kho', notes: 'Hàng sắp hết', timestamp: `${todayStr}T08:30:00`, status: 'checked-in', location: { lat: 16.054407, lng: 108.202164 }, regionId: 'HC' },
+            { id: 'V002', employeeId: 'NV01', customerName: 'Siêu thị mini K-Mart', storeName: 'K-Mart Nguyễn Văn Linh', phone: '0905333444', isPotential: true, creationDate: '2024-05-20', taskContent: 'Giới thiệu sản phẩm mới', notes: 'Khách hàng quan tâm', timestamp: `${todayStr}T10:15:00`, status: 'checked-in', location: { lat: 16.060963, lng: 108.214844 }, regionId: 'HC' },
+            { id: 'V003', employeeId: 'NV01', customerName: 'Anh Long (khách mới)', storeName: 'Cửa hàng tiện lợi', phone: '0913555666', isPotential: false, creationDate: todayStr, taskContent: 'Chào hàng', notes: 'Hẹn gặp lại vào tuần sau', timestamp: `${todayStr}T14:00:00`, status: 'checked-in', location: { lat: 16.069138, lng: 108.225334 }, regionId: 'HC' },
+            { id: 'V009', employeeId: 'NV01', customerName: 'Nhà sách Fahasa', storeName: 'Fahasa Lê Duẩn', phone: '0913555777', isPotential: false, creationDate: '2022-11-10', taskContent: 'Báo giá văn phòng phẩm', notes: '', timestamp: `${todayStr}T16:00:00`, status: 'planned', location: { lat: 16.065, lng: 108.219 }, regionId: 'HC' },
+
+            // NV02 - Trần Thị Bình
+            { id: 'V004', employeeId: 'NV02', customerName: 'Nhà hàng Biển Đông', storeName: 'Nhà hàng Biển Đông', phone: '0987654321', isPotential: false, creationDate: '2023-06-01', taskContent: 'Thu công nợ', notes: 'Đã thanh toán đủ', timestamp: `${todayStr}T09:00:00`, status: 'checked-in', location: { lat: 16.0745, lng: 108.243 }, regionId: 'ST' },
+            { id: 'V005', employeeId: 'NV02', customerName: 'Khách sạn Alacarte', storeName: 'Khách sạn Alacarte', phone: '02363959888', isPotential: true, creationDate: '2024-01-01', taskContent: 'Giao hàng', notes: '', timestamp: `${todayStr}T11:30:00`, status: 'planned', location: { lat: 16.081, lng: 108.248 }, regionId: 'ST' },
+
+            // NV03 - Lê Minh Cường
+            { id: 'V006', employeeId: 'NV03', customerName: 'Quán cafe The Hideout', storeName: 'The Hideout', phone: '0935123789', isPotential: false, creationDate: oneWeekAgoStr, taskContent: 'Giới thiệu cafe rang xay mới', notes: 'Chủ quán muốn dùng thử', timestamp: `${todayStr}T09:45:00`, status: 'checked-in', location: { lat: 16.115, lng: 108.150 }, regionId: 'LC' },
+            { id: 'V007', employeeId: 'NV03', customerName: 'Đại lý bia nước ngọt', storeName: 'Đại lý ABC', phone: '0944987654', isPotential: false, creationDate: '2021-02-02', taskContent: 'Kiểm tra trưng bày', notes: 'Trưng bày đẹp, đúng chuẩn', timestamp: `${todayStr}T13:30:00`, status: 'checked-in', location: { lat: 16.100, lng: 108.145 }, regionId: 'LC' },
+            { id: 'V008', employeeId: 'NV03', customerName: 'Nhà xe XYZ', storeName: 'Nhà xe XYZ', phone: '0944987655', isPotential: false, creationDate: '2021-02-02', taskContent: 'Kiểm tra trưng bày', notes: 'Trưng bày đẹp, đúng chuẩn', timestamp: `${todayStr}T15:30:00`, status: 'planned', location: { lat: 16.095, lng: 108.142 }, regionId: 'LC' },
+        ];
+        
+        const customerStatusConfig = {
+            'potential': { name: 'Tiềm năng', color: '#f97316' }, // orange-500
+            'new': { name: 'Mới', color: '#22c55e' }, // green-500
+            'old': { name: 'Cũ', color: '#3b82f6' } // blue-500
+        };
+
+        // --- DOM ELEMENTS ---
+        const dateFilter = document.getElementById('date-filter');
+        const employeeFilter = document.getElementById('employee-filter');
+        const regionFilter = document.getElementById('region-filter');
+        const checkinList = document.getElementById('checkin-list');
+        const checkinListTitle = document.getElementById('checkin-list-title');
+        const checkinSummary = document.getElementById('checkin-summary');
+
+        // --- MAP INITIALIZATION ---
+        const map = L.map('map').setView([16.0544, 108.2022], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        let markersLayer = new L.FeatureGroup().addTo(map);
+        let plannedRouteControl = null;
+        let checkedInRouteControl = null;
+        let legendControl = null;
+
+        // --- HELPER FUNCTIONS ---
+        function getCustomerStatus(visit) {
+            if (visit.isPotential) {
+                return 'potential';
+            }
+            const creationDate = new Date(visit.creationDate);
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+            if (creationDate > oneMonthAgo) {
+                return 'new';
+            }
+            return 'old';
+        }
+
+        // --- UI FUNCTIONS ---
+        function populateFilters() {
+            employees.forEach(emp => {
+                const option = document.createElement('option');
+                option.value = emp.id;
+                option.textContent = emp.name;
+                employeeFilter.appendChild(option);
+            });
+            regions.forEach(reg => {
+                const option = document.createElement('option');
+                option.value = reg.id;
+                option.textContent = reg.name;
+                regionFilter.appendChild(option);
+            });
+            dateFilter.value = todayStr;
+        }
+
+        function renderCheckinList(data) {
+            checkinList.innerHTML = '';
+            const checkedInCount = data.filter(item => item.status === 'checked-in').length;
+            const totalCount = data.length;
+
+            if (data.length === 0) {
+                checkinList.innerHTML = `<div class="text-center text-gray-500 p-4">Không có dữ liệu.</div>`;
+                checkinListTitle.textContent = `Kế hoạch trong ngày`;
+                checkinSummary.textContent = `Đã check-in: 0 / 0`;
+                return;
+            }
+
+            const employeeName = employeeFilter.value !== 'all' ? employees.find(e => e.id === employeeFilter.value).name : '';
+            
+            // Update title and summary
+            checkinListTitle.textContent = employeeName ? `Lộ trình của ${employeeName}` : `Kế hoạch trong ngày`;
+            checkinSummary.textContent = `Đã check-in: ${checkedInCount} / ${totalCount}`;
+            
+            data.forEach((item) => {
+                const employee = employees.find(e => e.id === item.employeeId);
+                const time = item.status === 'checked-in' ? new Date(item.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa check-in';
+                const itemEl = document.createElement('div');
+                itemEl.className = 'p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-all duration-200';
+                itemEl.dataset.lat = item.location.lat;
+                itemEl.dataset.lng = item.location.lng;
+                itemEl.dataset.visitId = item.id;
+                
+                const customerStatus = getCustomerStatus(item);
+                const statusInfo = customerStatusConfig[customerStatus];
+                let customerBadge = '';
+                if (customerStatus !== 'old') {
+                    customerBadge = `<span class="text-xs font-medium px-2 py-0.5 rounded-full mt-1 inline-block" style="background-color:${statusInfo.color}20; color:${statusInfo.color};">${statusInfo.name}</span>`;
+                }
+
+                itemEl.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex-grow">
+                            <p class="font-semibold text-sky-700">${item.storeName}</p>
+                            <p class="text-sm text-gray-600">${item.customerName}</p>
+                            ${employeeFilter.value === 'all' ? `<p class="text-xs text-gray-500 pt-1"><i class="fas fa-user mr-1"></i>${employee.name}</p>` : ''}
+                        </div>
+                        <div class="text-right flex-shrink-0 ml-2">
+                             <p class="text-sm font-medium text-gray-800">${time}</p>
+                             ${customerBadge}
+                        </div>
+                    </div>
+                    <div class="mt-2 text-sm text-gray-700">
+                        <p><strong>Công việc:</strong> ${item.taskContent}</p>
+                    </div>
+                `;
+                itemEl.addEventListener('click', () => {
+                    map.setView([item.location.lat, item.location.lng], 16);
+                    document.querySelectorAll('#checkin-list > div').forEach(el => el.classList.remove('list-item-selected'));
+                    itemEl.classList.add('list-item-selected');
+                });
+                checkinList.appendChild(itemEl);
+            });
+        }
+
+        function renderMap(data) {
+            markersLayer.clearLayers();
+            if (plannedRouteControl) map.removeControl(plannedRouteControl);
+            if (checkedInRouteControl) map.removeControl(checkedInRouteControl);
+            plannedRouteControl = null;
+            checkedInRouteControl = null;
+
+            if (data.length === 0) return;
+
+            const selectedEmployee = employeeFilter.value;
+
+            if (selectedEmployee === 'all') {
+                data.forEach(item => {
+                    const employee = employees.find(e => e.id === item.employeeId);
+                    const marker = L.marker([item.location.lat, item.location.lng], {
+                        opacity: item.status === 'checked-in' ? 1.0 : 0.6
+                    }).addTo(markersLayer);
+                    marker.bindPopup(`<b>${item.storeName}</b><br>NV: ${employee.name}<br>Trạng thái: ${item.status === 'checked-in' ? 'Đã Check-in' : 'Chưa Check-in'}`);
+                });
+                if (data.length > 0) {
+                    const groupBounds = markersLayer.getBounds();
+                    map.fitBounds(groupBounds.pad(0.3));
+                }
+            } else {
+                const employeeData = data.filter(c => c.employeeId === selectedEmployee).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                if (employeeData.length === 0) return;
+                
+                employeeData.forEach((item, index) => {
+                    const customerStatus = getCustomerStatus(item);
+                    const statusInfo = customerStatusConfig[customerStatus];
+                    const numberedIcon = L.divIcon({
+                        className: 'leaflet-div-icon',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15],
+                        html: `<div style="background-color: ${statusInfo.color}; width:100%; height:100%; border-radius:50%; display:flex; align-items:center; justify-content:center;">${index + 1}</div>`
+                    });
+                    const marker = L.marker([item.location.lat, item.location.lng], { icon: numberedIcon }).addTo(markersLayer);
+                    const time = item.status === 'checked-in' ? new Date(item.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa check-in';
+                    marker.bindPopup(`<b>#${index + 1}: ${item.storeName}</b><br>Loại KH: ${statusInfo.name}<br>Thời gian: ${time}<br>Công việc: ${item.taskContent}`);
+                });
+
+                const allWaypoints = employeeData.map(item => L.latLng(item.location.lat, item.location.lng));
+                if (allWaypoints.length > 1) {
+                    plannedRouteControl = L.routing.control({
+                        waypoints: allWaypoints,
+                        fitSelectedRoutes: true,
+                        routeWhileDragging: false, addWaypoints: false, createMarker: () => null,
+                        lineOptions: { styles: [{ color: 'gray', opacity: 0.8, weight: 5, dashArray: '10, 10' }] }
+                    }).addTo(map);
+                }
+
+                const checkedInWaypoints = employeeData.filter(item => item.status === 'checked-in').map(item => L.latLng(item.location.lat, item.location.lng));
+                if (checkedInWaypoints.length > 1) {
+                    checkedInRouteControl = L.routing.control({
+                        waypoints: checkedInWaypoints,
+                        fitSelectedRoutes: false,
+                        routeWhileDragging: false, addWaypoints: false, createMarker: () => null,
+                        lineOptions: { styles: [{ color: '#0284c7', opacity: 0.8, weight: 6 }] }
+                    }).addTo(map);
+                }
+            }
+        }
+        
+        function renderLegend() {
+            if (legendControl) {
+                map.removeControl(legendControl);
+            }
+            legendControl = L.control({position: 'bottomright'});
+            legendControl.onAdd = function (map) {
+                const div = L.DomUtil.create('div', 'info legend');
+                let content = '<strong>Chú giải</strong><br>';
+                
+                content += '<b>Loại khách hàng (Điểm):</b><br>';
+                content += `<i style="background:${customerStatusConfig.potential.color}"></i> ${customerStatusConfig.potential.name}<br>`;
+                content += `<i style="background:${customerStatusConfig.new.color}"></i> ${customerStatusConfig.new.name}<br>`;
+                content += `<i style="background:${customerStatusConfig.old.color}"></i> Khách hàng cũ<br>`;
+
+                content += '<br><b>Lộ trình:</b><br>';
+                content += '<i class="route" style="background: #0284c7;"></i> Đã đi<br>';
+                content += '<i class="route" style="background: repeating-linear-gradient(90deg, gray 0, gray 5px, transparent 5px, transparent 10px);"></i> Kế hoạch<br>';
+
+                div.innerHTML = content;
+                return div;
+            };
+            legendControl.addTo(map);
+        }
+
+        function updateDisplay() {
+            const selectedDate = dateFilter.value;
+            const selectedEmployee = employeeFilter.value;
+            const selectedRegion = regionFilter.value;
+
+            let filteredData = visits.filter(c => c.timestamp && c.timestamp.startsWith(selectedDate));
+            if (selectedEmployee !== 'all') {
+                filteredData = filteredData.filter(c => c.employeeId === selectedEmployee);
+            }
+            if (selectedRegion !== 'all') {
+                filteredData = filteredData.filter(c => c.regionId === selectedRegion);
+            }
+            
+            if (selectedRegion !== 'all') {
+                const region = regions.find(r => r.id === selectedRegion);
+                if (region) { map.setView(region.center, region.zoom); }
+            } else if (filteredData.length === 0) {
+                 map.setView([16.0544, 108.2022], 13);
+            }
+            
+            const sortedData = filteredData.sort((a,b) => {
+                const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+                const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+                return timeA - timeB;
+            });
+            renderCheckinList(sortedData);
+            renderMap(sortedData);
+        }
+
+        // --- INITIAL LOAD ---
+        populateFilters();
+        updateDisplay();
+        renderLegend();
+
+        // --- EVENT LISTENERS ---
+        dateFilter.addEventListener('change', updateDisplay);
+        employeeFilter.addEventListener('change', updateDisplay);
+        regionFilter.addEventListener('change', updateDisplay);
+    });
+    </script>
+</body>
+</html>
