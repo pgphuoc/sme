@@ -79,9 +79,11 @@
             color: #0284c7; /* sky-600 */
             font-weight: 600;
         }
-        .task-item-completed p, .task-item-completed .text-sm {
-            text-decoration: line-through;
-            color: #9ca3af; /* gray-400 */
+        .task-item-completed .text-slate-800 {
+             color: #6b7280; /* gray-500 */
+        }
+        .task-item-completed .text-slate-500 {
+             color: #9ca3af; /* gray-400 */
         }
         /* Custom Checkbox for Task Completion */
         .task-complete-toggle {
@@ -112,7 +114,7 @@
         .task-complete-toggle:checked::before {
             transform: scale(1);
         }
-        select, input[type="date"] {
+        .input-with-icon {
             padding-left: 2.5rem;
         }
     </style>
@@ -158,17 +160,17 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-center gap-4">
                         <div class="w-full relative">
                             <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="date" id="date-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm" title="Chọn ngày">
+                            <input type="date" id="date-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm input-with-icon" title="Chọn ngày">
                         </div>
                         <div class="w-full relative">
                             <i class="fas fa-user-tie absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <select id="employee-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm" title="Chọn nhân viên">
+                            <select id="employee-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm input-with-icon" title="Chọn nhân viên">
                                 <option value="all">Tất cả nhân viên</option>
                             </select>
                         </div>
                         <div class="w-full relative">
                              <i class="fas fa-map-pin absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <select id="region-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm" title="Chọn khu vực">
+                            <select id="region-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm input-with-icon" title="Chọn khu vực">
                                 <option value="all">Tất cả khu vực</option>
                             </select>
                         </div>
@@ -203,34 +205,34 @@
                             <div class="relative">
                                 <label for="task-assignee-filter" class="block text-sm font-medium text-slate-700 mb-1">Người thực hiện</label>
                                 <i class="fas fa-user absolute left-3 bottom-3 text-slate-400"></i>
-                                <select id="task-assignee-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm"></select>
+                                <select id="task-assignee-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm input-with-icon"></select>
                             </div>
                              <div class="relative">
                                 <label for="task-assigner-filter" class="block text-sm font-medium text-slate-700 mb-1">Người giao</label>
                                 <i class="fas fa-user-tag absolute left-3 bottom-3 text-slate-400"></i>
-                                <select id="task-assigner-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm"></select>
+                                <select id="task-assigner-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm input-with-icon"></select>
                             </div>
                             <div class="relative">
                                 <label for="task-group-filter" class="block text-sm font-medium text-slate-700 mb-1">Nhóm công việc</label>
                                 <i class="fas fa-folder-open absolute left-3 bottom-3 text-slate-400"></i>
-                                <select id="task-group-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm"></select>
+                                <select id="task-group-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm input-with-icon"></select>
                             </div>
                              <div class="relative">
                                 <label for="task-tag-filter" class="block text-sm font-medium text-slate-700 mb-1">Tags</label>
                                 <i class="fas fa-tags absolute left-3 bottom-3 text-slate-400"></i>
-                                <select id="task-tag-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm"></select>
+                                <select id="task-tag-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm input-with-icon"></select>
                             </div>
                             <div class="lg:col-span-2">
                                 <label class="block text-sm font-medium text-slate-700 mb-1">Khoảng ngày hết hạn</label>
                                 <div class="flex items-center space-x-2">
                                     <div class="relative w-1/2">
                                         <i class="fas fa-calendar-day absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                        <input type="date" id="task-start-date-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm" title="Từ ngày">
+                                        <input type="date" id="task-start-date-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm input-with-icon" title="Từ ngày">
                                     </div>
                                     <span class="text-slate-500">-</span>
                                     <div class="relative w-1/2">
                                         <i class="fas fa-calendar-day absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                        <input type="date" id="task-end-date-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm" title="Đến ngày">
+                                        <input type="date" id="task-end-date-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm input-with-icon" title="Đến ngày">
                                     </div>
                                 </div>
                             </div>
@@ -354,6 +356,18 @@
             { id: 6, name: 'Thiết kế catalogue sản phẩm mới', important: true, assignerId: 'NV02', assigneeId: 'NV03', dueDate: nextWeekStr, group: 'Marketing', content: 'Bao gồm các sản phẩm mới: cua Alaska, vẹm xanh New Zealand.', tags: ['thiết kế', 'catalogue', 'sản phẩm mới'], status: 'incomplete' },
             { id: 7, name: 'Đối soát công nợ với nhà hàng A', important: false, assignerId: 'NV01', assigneeId: 'NV01', dueDate: lastWeekStr, group: 'Công nợ', content: 'Đối soát công nợ quý 2/2025.', tags: ['công nợ', 'kế toán'], status: 'completed' },
             { id: 8, name: 'Khảo sát giá thị trường cho tôm hùm', important: false, assignerId: 'NV02', assigneeId: 'NV03', dueDate: tomorrowStr, group: 'Nghiên cứu thị trường', content: 'Khảo sát giá bán lẻ tại các siêu thị lớn.', tags: ['giá', 'thị trường'], status: 'incomplete' },
+            { id: 9, name: 'Họp team sales tháng 7', important: true, assignerId: 'NV02', assigneeId: 'NV01', dueDate: todayStr, group: 'Họp', content: 'Review KPI và kế hoạch tháng 8.', tags: ['họp', 'sales', 'kpi'], status: 'incomplete' },
+            { id: 10, name: 'Xử lý khiếu nại từ Khách sạn Grand Mercure', important: true, assignerId: 'NV01', assigneeId: 'NV01', dueDate: todayStr, group: 'Chăm sóc khách hàng', content: 'Khách hàng phản ánh chất lượng cá hồi không đồng đều.', tags: ['khiếu nại', 'chất lượng'], status: 'incomplete' },
+            { id: 11, name: 'Đào tạo sản phẩm mới cho nhân viên', important: false, assignerId: 'NV02', assigneeId: 'NV02', dueDate: nextWeekStr, group: 'Đào tạo', content: 'Đào tạo về các loại hàu và cách bảo quản.', tags: ['đào tạo', 'sản phẩm mới'], status: 'incomplete' },
+            { id: 12, name: 'Thanh toán hóa đơn cho nhà cung cấp B', important: false, assignerId: 'NV01', assigneeId: 'NV02', dueDate: yesterdayStr, group: 'Công nợ', content: 'Thanh toán hóa đơn nhập khẩu cá ngừ.', tags: ['công nợ', 'thanh toán'], status: 'completed' },
+            { id: 13, name: 'Cập nhật website', important: false, assignerId: 'NV02', assigneeId: 'NV03', dueDate: tomorrowStr, group: 'Marketing', content: 'Đăng bài viết về "Cách phân biệt hải sản tươi sống".', tags: ['website', 'content'], status: 'incomplete' },
+            { id: 14, name: 'Tìm kiếm nhà cung cấp mực nang mới', important: true, assignerId: 'NV02', assigneeId: 'NV01', dueDate: nextWeekStr, group: 'Nguồn hàng', content: 'Tìm ít nhất 3 nhà cung cấp tiềm năng.', tags: ['nhà cung cấp', 'mực nang'], status: 'incomplete' },
+            { id: 15, name: 'Setup gian hàng hội chợ ẩm thực', important: true, assignerId: 'NV02', assigneeId: 'NV03', dueDate: nextWeekStr, group: 'Sự kiện', content: 'Chuẩn bị vật dụng, banner, sản phẩm trưng bày.', tags: ['sự kiện', 'hội chợ'], status: 'incomplete' },
+            { id: 16, name: 'Báo cáo tồn kho cuối tháng', important: false, assignerId: 'NV01', assigneeId: 'NV02', dueDate: tomorrowStr, group: 'Báo cáo', content: 'Lập báo cáo tồn kho chi tiết gửi cho quản lý.', tags: ['báo cáo', 'kho'], status: 'incomplete' },
+            { id: 17, name: 'Làm lại hợp đồng với siêu thị Lotte Mart', important: true, assignerId: 'NV02', assigneeId: 'NV01', dueDate: todayStr, group: 'Hợp đồng', content: 'Thương lượng lại các điều khoản về chiết khấu và giao hàng.', tags: ['hợp đồng', 'khách hàng lớn'], status: 'incomplete' },
+            { id: 18, name: 'Gửi quà tặng cho khách hàng VIP', important: false, assignerId: 'NV02', assigneeId: 'NV03', dueDate: nextWeekStr, group: 'Chăm sóc khách hàng', content: 'Chuẩn bị quà và thiệp cho 10 khách hàng VIP.', tags: ['quà tặng', 'vip'], status: 'completed' },
+            { id: 19, name: 'Sửa chữa hệ thống làm lạnh kho số 2', important: true, assignerId: 'NV02', assigneeId: 'NV02', dueDate: yesterdayStr, group: 'Vận hành', content: 'Hệ thống báo lỗi, cần gọi kỹ thuật kiểm tra gấp.', tags: ['bảo trì', 'kho'], status: 'incomplete' },
+            { id: 20, name: 'Phân tích đối thủ cạnh tranh', important: false, assignerId: 'NV01', assigneeId: 'NV03', dueDate: nextWeekStr, group: 'Nghiên cứu thị trường', content: 'Phân tích giá và sản phẩm của 3 đối thủ chính.', tags: ['đối thủ', 'phân tích'], status: 'incomplete' },
         ];
         
         const customerTypeConfig = {
@@ -605,6 +619,9 @@
 
             // Tab filters
             switch(currentTaskFilter) {
+                case 'all':
+                    filteredTasks = filteredTasks.filter(t => t.status === 'incomplete');
+                    break;
                 case 'important':
                     filteredTasks = filteredTasks.filter(t => t.important);
                     break;
@@ -612,7 +629,7 @@
                     filteredTasks = filteredTasks.filter(t => t.status === 'incomplete' && new Date(t.dueDate) < new Date(todayStr));
                     break;
                 case 'incomplete':
-                    filteredTasks = filteredTasks.filter(t => t.status === 'incomplete');
+                    filteredTasks = filteredTasks.filter(t => t.status === 'incomplete' && new Date(t.dueDate) >= new Date(todayStr));
                     break;
                 case 'completed':
                     filteredTasks = filteredTasks.filter(t => t.status === 'completed');
