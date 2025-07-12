@@ -145,6 +145,12 @@
                             <span class="ml-3">Quản lý Công việc</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="#" class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors duration-200" data-page="page-set-target">
+                            <i class="fas fa-bullseye w-6 text-center text-slate-400"></i>
+                            <span class="ml-3">Đặt mục tiêu</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </aside>
@@ -255,6 +261,54 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Page 3: Set Target (formerly Target List) -->
+            <div id="page-set-target" class="page-content hidden flex-col h-full">
+                 <header class="bg-white shadow-sm p-4 z-20 flex justify-between items-center">
+                    <h1 class="text-2xl font-semibold text-slate-900">Quản lý Mục tiêu</h1>
+                     <button id="btn-create-target" class="bg-sky-600 text-white px-4 py-2 rounded-lg hover:bg-sky-700 transition-colors shadow-sm"><i class="fas fa-plus mr-2"></i>Tạo mục tiêu mới</button>
+                </header>
+                <div class="flex-grow p-4 overflow-y-auto">
+                    <div class="p-4 mb-4 border rounded-lg bg-white border-slate-200">
+                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="relative">
+                                <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <select id="target-list-employee-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm input-with-icon">
+                                    <option value="all">Tất cả nhân viên</option>
+                                </select>
+                            </div>
+                             <div class="relative">
+                                <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <select id="target-list-period-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm input-with-icon">
+                                    <option value="all">Tất cả thời gian</option>
+                                    <option value="this_month">Tháng này</option>
+                                    <option value="this_quarter">Quý này</option>
+                                    <option value="this_year">Năm này</option>
+                                </select>
+                            </div>
+                         </div>
+                    </div>
+                    <div class="bg-white border rounded-lg border-slate-200 overflow-hidden">
+                        <table class="w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Nhân viên</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Thời gian</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Mục tiêu (VNĐ)</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Thực đạt (VNĐ)</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tiến độ</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Trạng thái</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="target-list-table-body" class="bg-white divide-y divide-slate-200">
+                                <!-- Target rows will be injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -310,6 +364,50 @@
         </div>
     </div>
 
+    <!-- Target Modal -->
+    <div id="target-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div class="p-4 border-b">
+                <h3 id="target-modal-title" class="text-xl font-semibold">Tạo mục tiêu mới</h3>
+            </div>
+            <form id="target-form" class="flex-grow p-6 space-y-4 overflow-y-auto">
+                <input type="hidden" id="target-id">
+                <div class="relative">
+                    <label for="target-employee-select" class="block text-sm font-medium text-slate-700 mb-1">Nhân viên</label>
+                    <i class="fas fa-user absolute left-3 bottom-3 text-slate-400"></i>
+                    <select id="target-employee-select" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm input-with-icon"></select>
+                </div>
+                 <div class="relative">
+                     <label for="target-amount" class="block text-sm font-medium text-slate-700 mb-1">Mục tiêu doanh số (VNĐ)</label>
+                     <i class="fas fa-coins absolute left-3 bottom-3 text-slate-400"></i>
+                     <input type="text" id="target-amount" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm input-with-icon" placeholder="VD: 500,000,000">
+                </div>
+                 <div>
+                    <label for="target-period-preset" class="block text-sm font-medium text-slate-700 mb-1">Giao theo</label>
+                    <select id="target-period-preset" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm">
+                        <option value="custom">Tuỳ chỉnh</option>
+                        <option value="this_month">Tháng này</option>
+                        <option value="this_quarter">Quý này</option>
+                        <option value="this_year">Năm này</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Thời gian áp dụng</label>
+                     <div class="flex items-center space-x-2">
+                        <input type="date" id="target-start-date" class="block w-1/2 rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm" title="Từ ngày">
+                        <span class="text-slate-500">-</span>
+                        <input type="date" id="target-end-date" class="block w-1/2 rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm" title="Đến ngày">
+                    </div>
+                </div>
+            </form>
+            <div class="p-4 bg-slate-50 border-t flex justify-end space-x-2">
+                <button id="btn-cancel-target" type="button" class="bg-white py-2 px-4 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700 hover:bg-slate-50">Hủy</button>
+                <button id="btn-save-target" type="button" class="bg-sky-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-sky-700">Lưu mục tiêu</button>
+            </div>
+        </div>
+    </div>
+
+
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // --- MOCK DATA ---
@@ -329,9 +427,9 @@
         const lastWeekStr = lastWeek.toISOString().slice(0, 10);
 
         const employees = [
-            { id: 'NV01', name: 'Nguyễn Văn An' },
-            { id: 'NV02', name: 'Trần Thị Bình' },
-            { id: 'NV03', name: 'Lê Minh Cường' }
+            { id: 'NV01', name: 'Nguyễn Văn An', department: 'Kinh doanh' },
+            { id: 'NV02', name: 'Trần Thị Bình', department: 'Quản lý' },
+            { id: 'NV03', name: 'Lê Minh Cường', department: 'Kinh doanh' }
         ];
         const regions = [
             { id: 'HC', name: 'Quận Hải Châu', center: [16.047079, 108.206230], zoom: 14 },
@@ -369,6 +467,12 @@
             { id: 19, name: 'Sửa chữa hệ thống làm lạnh kho số 2', important: true, assignerId: 'NV02', assigneeId: 'NV02', dueDate: yesterdayStr, group: 'Vận hành', content: 'Hệ thống báo lỗi, cần gọi kỹ thuật kiểm tra gấp.', tags: ['bảo trì', 'kho'], status: 'incomplete' },
             { id: 20, name: 'Phân tích đối thủ cạnh tranh', important: false, assignerId: 'NV01', assigneeId: 'NV03', dueDate: nextWeekStr, group: 'Nghiên cứu thị trường', content: 'Phân tích giá và sản phẩm của 3 đối thủ chính.', tags: ['đối thủ', 'phân tích'], status: 'incomplete' },
         ];
+        let targets = [
+            { id: 1, employeeId: 'NV01', targetAmount: 500000000, currentAmount: 150000000, startDate: '2025-07-01', endDate: '2025-07-31' },
+            { id: 2, employeeId: 'NV03', targetAmount: 450000000, currentAmount: 300000000, startDate: '2025-07-01', endDate: '2025-07-31' },
+            { id: 3, employeeId: 'NV01', targetAmount: 1500000000, currentAmount: 1650000000, startDate: '2025-04-01', endDate: '2025-06-30' },
+            { id: 4, employeeId: 'NV02', targetAmount: 2000000000, currentAmount: 500000000, startDate: '2025-01-01', endDate: '2025-12-31' },
+        ];
         
         const customerTypeConfig = {
             'potential': { name: 'Khách hàng tiềm năng', color: '#f97316' },
@@ -393,16 +497,31 @@
         const btnCancelTask = document.getElementById('btn-cancel-task');
         const btnSaveTask = document.getElementById('btn-save-task');
         const taskFilterNav = document.getElementById('task-filter-nav');
-        // Advanced task filters
         const taskAssigneeFilter = document.getElementById('task-assignee-filter');
         const taskAssignerFilter = document.getElementById('task-assigner-filter');
         const taskGroupFilter = document.getElementById('task-group-filter');
         const taskTagFilter = document.getElementById('task-tag-filter');
         const taskStartDateFilter = document.getElementById('task-start-date-filter');
         const taskEndDateFilter = document.getElementById('task-end-date-filter');
+
+        // Set Target Elements
+        const targetModal = document.getElementById('target-modal');
+        const btnCreateTarget = document.getElementById('btn-create-target');
+        const btnCancelTarget = document.getElementById('btn-cancel-target');
+        const btnSaveTarget = document.getElementById('btn-save-target');
+        const targetEmployeeSelect = document.getElementById('target-employee-select');
+        const targetAmount = document.getElementById('target-amount');
+        const targetPeriodPreset = document.getElementById('target-period-preset');
+        const targetStartDate = document.getElementById('target-start-date');
+        const targetEndDate = document.getElementById('target-end-date');
+
+        // Target List Elements
+        const targetListEmployeeFilter = document.getElementById('target-list-employee-filter');
+        const targetListPeriodFilter = document.getElementById('target-list-period-filter');
+        const targetListTableBody = document.getElementById('target-list-table-body');
         
         // --- MAP INITIALIZATION ---
-        let map = null; // Initialize later
+        let map = null;
         let markersLayer = null;
         let legendControl = null;
         let currentTaskFilter = 'all';
@@ -421,6 +540,9 @@
                 resetTaskFilters();
                 populateTaskAdvancedFilters();
                 updateTaskDisplay();
+            }
+            if (pageId === 'page-set-target') {
+                initializeTargetListPage();
             }
         }
 
@@ -449,12 +571,14 @@
         function getCustomerType(checkin) { return checkin.isPotential ? 'potential' : 'regular'; }
 
         function populateSalesFilters() {
+            employeeFilter.innerHTML = '<option value="all">Tất cả nhân viên</option>';
             employees.forEach(emp => {
                 const option = document.createElement('option');
                 option.value = emp.id;
                 option.textContent = emp.name;
                 employeeFilter.appendChild(option);
             });
+            regionFilter.innerHTML = '<option value="all">Tất cả khu vực</option>';
             regions.forEach(reg => {
                 const option = document.createElement('option');
                 option.value = reg.id;
@@ -772,6 +896,164 @@
             closeTaskModal();
         }
 
+        // --- SET TARGET LOGIC ---
+        function initializeTargetListPage() {
+            populateTargetListFilters();
+            updateTargetListDisplay();
+            [targetListEmployeeFilter, targetListPeriodFilter].forEach(el => el.addEventListener('change', updateTargetListDisplay));
+        }
+
+        function populateTargetListFilters() {
+            targetListEmployeeFilter.innerHTML = '<option value="all">Tất cả nhân viên</option>';
+            employees.forEach(emp => {
+                const option = document.createElement('option');
+                option.value = emp.id;
+                option.textContent = emp.name;
+                targetListEmployeeFilter.appendChild(option);
+            });
+        }
+
+        function updateTargetListDisplay() {
+            let filteredTargets = [...targets];
+            const selectedEmployee = targetListEmployeeFilter.value;
+            if (selectedEmployee !== 'all') {
+                filteredTargets = filteredTargets.filter(t => t.employeeId === selectedEmployee);
+            }
+
+            const period = targetListPeriodFilter.value;
+            if (period !== 'all') {
+                const now = new Date();
+                let start, end;
+                 if (period === 'this_month') {
+                    start = new Date(now.getFullYear(), now.getMonth(), 1);
+                    end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                } else if (period === 'this_quarter') {
+                    const quarter = Math.floor(now.getMonth() / 3);
+                    start = new Date(now.getFullYear(), quarter * 3, 1);
+                    end = new Date(now.getFullYear(), quarter * 3 + 3, 0);
+                } else if (period === 'this_year') {
+                    start = new Date(now.getFullYear(), 0, 1);
+                    end = new Date(now.getFullYear(), 11, 31);
+                }
+                filteredTargets = filteredTargets.filter(t => {
+                    const targetStart = new Date(t.startDate);
+                    const targetEnd = new Date(t.endDate);
+                    return targetStart <= end && targetEnd >= start;
+                });
+            }
+            
+            renderTargetListTable(filteredTargets);
+        }
+
+        function renderTargetListTable(data) {
+            targetListTableBody.innerHTML = '';
+            if (data.length === 0) {
+                targetListTableBody.innerHTML = `<tr><td colspan="7" class="text-center text-slate-500 p-4">Không có mục tiêu nào phù hợp.</td></tr>`;
+                return;
+            }
+
+            data.sort((a,b) => new Date(b.startDate) - new Date(a.startDate)).forEach(target => {
+                const employee = employees.find(e => e.id === target.employeeId);
+                const progress = Math.min((target.currentAmount / target.targetAmount) * 100, 100);
+                let status, statusColor;
+                const now = new Date(todayStr);
+                const targetEnd = new Date(target.endDate);
+
+                if (now > targetEnd) {
+                    status = 'Đã kết thúc';
+                    statusColor = 'bg-slate-200 text-slate-800';
+                } else {
+                    status = 'Đang diễn ra';
+                    statusColor = 'bg-green-100 text-green-800';
+                }
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-slate-900">${employee.name}</div>
+                        <div class="text-sm text-slate-500">${employee.department}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${new Date(target.startDate).toLocaleDateString('vi-VN')} - ${new Date(target.endDate).toLocaleDateString('vi-VN')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900 font-medium">${new Intl.NumberFormat('vi-VN').format(target.targetAmount)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-900">${new Intl.NumberFormat('vi-VN').format(target.currentAmount)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="w-full bg-slate-200 rounded-full h-2.5">
+                            <div class="bg-sky-600 h-2.5 rounded-full" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="text-xs text-slate-500 text-right mt-1">${progress.toFixed(0)}%</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="text-xs font-medium px-2 py-1 rounded-full ${statusColor}">${status}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-sky-600 hover:text-sky-900 edit-target-btn" data-target-id="${target.id}">Sửa</button>
+                    </td>
+                `;
+                targetListTableBody.appendChild(row);
+            });
+        }
+
+        function openTargetModal(targetId = null) {
+            const form = document.getElementById('target-form');
+            form.reset();
+
+            if (targetId) {
+                const target = targets.find(t => t.id === targetId);
+                if (target) {
+                    document.getElementById('target-modal-title').textContent = 'Chỉnh sửa Mục tiêu';
+                    document.getElementById('target-id').value = target.id;
+                    document.getElementById('target-employee-select').value = target.employeeId;
+                    targetAmount.value = new Intl.NumberFormat('vi-VN').format(target.targetAmount);
+                    targetStartDate.value = target.startDate;
+                    targetEndDate.value = target.endDate;
+                }
+            } else {
+                document.getElementById('target-modal-title').textContent = 'Tạo mục tiêu mới';
+                document.getElementById('target-id').value = '';
+            }
+            targetModal.classList.remove('hidden');
+            targetModal.classList.add('flex');
+        }
+
+        function closeTargetModal() {
+            targetModal.classList.add('hidden');
+            targetModal.classList.remove('flex');
+        }
+
+        function saveTarget() {
+            const id = document.getElementById('target-id').value;
+            const employeeId = document.getElementById('target-employee-select').value;
+            const amount = parseFloat(targetAmount.value.replace(/,/g, ''));
+            const startDate = targetStartDate.value;
+            const endDate = targetEndDate.value;
+
+            if (!employeeId || !amount || !startDate || !endDate) {
+                alert('Vui lòng điền đầy đủ thông tin.');
+                return;
+            }
+
+            if (id) { // Update
+                const index = targets.findIndex(t => t.id == id);
+                if (index !== -1) {
+                    targets[index] = { ...targets[index], employeeId, targetAmount: amount, startDate, endDate };
+                }
+            } else { // Create
+                const newTarget = {
+                    id: targets.length > 0 ? Math.max(...targets.map(t => t.id)) + 1 : 1,
+                    employeeId,
+                    targetAmount: amount,
+                    currentAmount: 0,
+                    startDate,
+                    endDate,
+                };
+                targets.push(newTarget);
+            }
+            updateTargetListDisplay();
+            closeTargetModal();
+        }
+
+
+        // --- EVENT LISTENERS ---
         taskFilterNav.addEventListener('click', (e) => {
             if (e.target.matches('.task-filter-tab')) {
                 currentTaskFilter = e.target.dataset.filter;
@@ -797,6 +1079,23 @@
         btnCreateTask.addEventListener('click', () => openTaskModal());
         btnCancelTask.addEventListener('click', closeTaskModal);
         btnSaveTask.addEventListener('click', saveTask);
+
+        // Target Modal Listeners
+        btnCreateTarget.addEventListener('click', () => openTargetModal());
+        btnCancelTarget.addEventListener('click', closeTargetModal);
+        btnSaveTarget.addEventListener('click', saveTarget);
+        targetAmount.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/,/g, '');
+            if (!isNaN(value) && value.length > 0) {
+                e.target.value = new Intl.NumberFormat('vi-VN').format(value);
+            }
+        });
+        targetListTableBody.addEventListener('click', e => {
+            if (e.target.matches('.edit-target-btn')) {
+                const targetId = parseInt(e.target.dataset.targetId);
+                openTargetModal(targetId);
+            }
+        });
         
         // --- INITIAL LOAD ---
         switchPage('page-sales-dashboard');
