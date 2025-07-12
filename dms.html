@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang Quản Lý Check-in Của Nhân Viên</title>
+    <title>Ứng dụng Quản lý Sales & Công việc</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,10 +12,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     
-    <!-- Leaflet Routing Machine CSS & JS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 
@@ -23,6 +19,7 @@
         /* Custom styles */
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
         }
         #map {
             height: 100%;
@@ -36,21 +33,11 @@
             background-color: #e0f2fe; /* light blue */
             border-left: 4px solid #0ea5e9; /* sky-500 */
         }
-        /* Custom numbered icon for Leaflet */
         .leaflet-div-icon {
-            border: 2px solid #ffffff;
             border-radius: 50%;
-            color: white;
-            font-weight: bold;
-            text-align: center;
-            line-height: 26px; /* Adjust based on icon size */
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border: 2px solid white;
         }
-        /* Hide the default routing machine itinerary */
-        .leaflet-routing-container {
-            display: none;
-        }
-        /* Style for the map legend */
         .legend {
             padding: 6px 10px;
             font: 14px/16px Arial, Helvetica, sans-serif;
@@ -68,73 +55,255 @@
             border-radius: 50%;
             border: 1px solid #ccc;
         }
-        .legend .route {
-            width: 18px;
-            height: 4px;
-            float: left;
-            margin-right: 8px;
-            margin-top: 10px;
+        .customer-label {
+            background-color: transparent;
             border: none;
+            box-shadow: none;
+            font-weight: bold;
+            font-size: 11px;
+            color: #374151;
+            text-shadow: 1px 1px 2px white, -1px -1px 2px white, 1px -1px 2px white, -1px 1px 2px white;
+        }
+        .nav-item.active {
+            background-color: #0c4a6e; /* sky-900 */
+            color: white;
+        }
+        .nav-item.active i {
+            color: #7dd3fc; /* sky-300 */
+        }
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.5);
+        }
+        .task-filter-tab.active {
+            border-color: #0ea5e9; /* sky-500 */
+            color: #0284c7; /* sky-600 */
+            font-weight: 600;
+        }
+        .task-item-completed p, .task-item-completed .text-sm {
+            text-decoration: line-through;
+            color: #9ca3af; /* gray-400 */
+        }
+        /* Custom Checkbox for Task Completion */
+        .task-complete-toggle {
+            appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.25em;
+            height: 1.25em;
+            border: 0.15em solid #d1d5db;
+            border-radius: 0.25rem;
+            transform: translateY(-0.075em);
+            display: grid;
+            place-content: center;
+            cursor: pointer;
+        }
+        .task-complete-toggle::before {
+            content: "";
+            width: 0.65em;
+            height: 0.65em;
+            transform: scale(0);
+            transition: 120ms transform ease-in-out;
+            box-shadow: inset 1em 1em #0ea5e9;
+            transform-origin: bottom left;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+        }
+        .task-complete-toggle:checked::before {
+            transform: scale(1);
+        }
+        select, input[type="date"] {
+            padding-left: 2.5rem;
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="bg-slate-50 text-slate-800">
 
-    <div class="flex flex-col h-screen">
-        <!-- Header -->
-        <header class="bg-white shadow-md p-4 z-20">
-            <h1 class="text-2xl font-bold text-gray-800">
-                <i class="fas fa-map-marked-alt mr-2 text-sky-600"></i>Bảng Điều Khiển Check-in
-            </h1>
-        </header>
-
-        <!-- Filters Bar -->
-        <div class="bg-white p-3 shadow z-10">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 items-center gap-4">
-                 <h2 class="text-lg font-semibold text-gray-700 hidden lg:block col-span-1">
-                    <i class="fas fa-filter mr-2 text-gray-500"></i>Bộ lọc:
-                </h2>
-                <div class="w-full">
-                    <label for="date-filter" class="sr-only">Ngày</label>
-                    <input type="date" id="date-filter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2.5" title="Chọn ngày">
-                </div>
-                <div class="w-full">
-                    <label for="employee-filter" class="sr-only">Nhân viên</label>
-                    <select id="employee-filter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2.5" title="Chọn nhân viên">
-                        <option value="all">Tất cả nhân viên</option>
-                    </select>
-                </div>
-                <div class="w-full">
-                    <label for="region-filter" class="sr-only">Khu vực</label>
-                    <select id="region-filter" class="w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm p-2.5" title="Chọn khu vực">
-                        <option value="all">Tất cả khu vực</option>
-                    </select>
-                </div>
+    <div class="flex h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-slate-800 text-slate-200 flex flex-col flex-shrink-0">
+            <div class="p-4 border-b border-slate-700 flex items-center justify-center">
+                 <i class="fas fa-chart-line text-sky-400 text-3xl"></i>
+                <h1 class="text-2xl font-bold text-white ml-3">CRM Pro</h1>
             </div>
-        </div>
+            <nav class="flex-grow p-2">
+                <ul>
+                    <li>
+                        <a href="#" class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors duration-200" data-page="page-sales-dashboard">
+                            <i class="fas fa-map-marked-alt w-6 text-center text-slate-400"></i>
+                            <span class="ml-3">Quản lý Sales</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-item flex items-center px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors duration-200" data-page="page-task-management">
+                            <i class="fas fa-tasks w-6 text-center text-slate-400"></i>
+                            <span class="ml-3">Quản lý Công việc</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
 
         <!-- Main Content -->
-        <div class="flex-grow flex flex-col md:flex-row p-4 gap-4 overflow-hidden">
-            
-            <!-- Left Panel: List -->
-            <div class="w-full md:w-1/3 lg:w-1/4 flex flex-col">
-                <div class="bg-white p-4 rounded-lg shadow flex-grow flex flex-col overflow-hidden">
-                    <div class="border-b pb-2 mb-3">
-                        <h2 id="checkin-list-title" class="text-lg font-semibold">Kế hoạch trong ngày</h2>
-                        <p id="checkin-summary" class="text-sm text-gray-600 mt-1"></p>
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Page 1: Sales Dashboard -->
+            <div id="page-sales-dashboard" class="page-content flex flex-col h-full">
+                <header class="bg-white shadow-sm p-4 z-20">
+                    <h1 class="text-2xl font-semibold text-slate-900">Bảng Điều Khiển Check-in</h1>
+                </header>
+                <div class="bg-white p-3 border-t border-slate-200 z-10">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 items-center gap-4">
+                        <div class="w-full relative">
+                            <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="date" id="date-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm" title="Chọn ngày">
+                        </div>
+                        <div class="w-full relative">
+                            <i class="fas fa-user-tie absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <select id="employee-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm" title="Chọn nhân viên">
+                                <option value="all">Tất cả nhân viên</option>
+                            </select>
+                        </div>
+                        <div class="w-full relative">
+                             <i class="fas fa-map-pin absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <select id="region-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm" title="Chọn khu vực">
+                                <option value="all">Tất cả khu vực</option>
+                            </select>
+                        </div>
                     </div>
-                    <div id="checkin-list" class="overflow-y-auto space-y-3 pr-2 flex-grow">
-                        <!-- Check-in items will be injected here by JS -->
+                </div>
+                <div class="flex-grow flex flex-col md:flex-row p-4 gap-4 overflow-hidden">
+                    <div class="w-full md:w-1/3 lg:w-1/4 flex flex-col">
+                        <div class="bg-white p-4 rounded-lg border border-slate-200 flex-grow flex flex-col overflow-hidden">
+                            <div class="border-b pb-2 mb-3">
+                                <h2 id="checkin-list-title" class="text-lg font-semibold text-slate-800">Danh sách Check-in</h2>
+                                <p id="checkin-summary" class="text-sm text-slate-600 mt-1"></p>
+                            </div>
+                            <div id="checkin-list" class="overflow-y-auto space-y-3 pr-2 flex-grow"></div>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-2/3 lg:w-3/4 bg-white rounded-lg border border-slate-200 p-2 relative">
+                        <div id="map"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Panel: Map -->
-            <div class="w-full md:w-2/3 lg:w-3/4 bg-white rounded-lg shadow p-2 relative">
-                <div id="map"></div>
+            <!-- Page 2: Task Management -->
+            <div id="page-task-management" class="page-content hidden flex-col h-full">
+                 <header class="bg-white shadow-sm p-4 z-20 flex justify-between items-center">
+                    <h1 class="text-2xl font-semibold text-slate-900">Quản lý Công việc</h1>
+                    <button id="btn-create-task" class="bg-sky-600 text-white px-4 py-2 rounded-lg hover:bg-sky-700 transition-colors shadow-sm"><i class="fas fa-plus mr-2"></i>Tạo công việc mới</button>
+                </header>
+                <div class="flex-grow p-4 overflow-y-auto">
+                    <!-- Advanced Filters -->
+                    <div class="p-4 mb-4 border rounded-lg bg-white border-slate-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="relative">
+                                <label for="task-assignee-filter" class="block text-sm font-medium text-slate-700 mb-1">Người thực hiện</label>
+                                <i class="fas fa-user absolute left-3 bottom-3 text-slate-400"></i>
+                                <select id="task-assignee-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm"></select>
+                            </div>
+                             <div class="relative">
+                                <label for="task-assigner-filter" class="block text-sm font-medium text-slate-700 mb-1">Người giao</label>
+                                <i class="fas fa-user-tag absolute left-3 bottom-3 text-slate-400"></i>
+                                <select id="task-assigner-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm"></select>
+                            </div>
+                            <div class="relative">
+                                <label for="task-group-filter" class="block text-sm font-medium text-slate-700 mb-1">Nhóm công việc</label>
+                                <i class="fas fa-folder-open absolute left-3 bottom-3 text-slate-400"></i>
+                                <select id="task-group-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm"></select>
+                            </div>
+                             <div class="relative">
+                                <label for="task-tag-filter" class="block text-sm font-medium text-slate-700 mb-1">Tags</label>
+                                <i class="fas fa-tags absolute left-3 bottom-3 text-slate-400"></i>
+                                <select id="task-tag-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm"></select>
+                            </div>
+                            <div class="lg:col-span-2">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Khoảng ngày hết hạn</label>
+                                <div class="flex items-center space-x-2">
+                                    <div class="relative w-1/2">
+                                        <i class="fas fa-calendar-day absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                        <input type="date" id="task-start-date-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm" title="Từ ngày">
+                                    </div>
+                                    <span class="text-slate-500">-</span>
+                                    <div class="relative w-1/2">
+                                        <i class="fas fa-calendar-day absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                        <input type="date" id="task-end-date-filter" class="w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-sm" title="Đến ngày">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Task Filter Tabs -->
+                     <div class="border-b border-slate-200">
+                        <nav id="task-filter-nav" class="-mb-px flex space-x-8" aria-label="Tabs">
+                            <button class="task-filter-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300" data-filter="all">Tất cả</button>
+                            <button class="task-filter-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300" data-filter="important">Quan trọng</button>
+                            <button class="task-filter-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300" data-filter="overdue">Quá hạn</button>
+                            <button class="task-filter-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300" data-filter="incomplete">Chưa hoàn thành</button>
+                            <button class="task-filter-tab whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300" data-filter="completed">Đã hoàn thành</button>
+                        </nav>
+                    </div>
+                    <div class="pt-4">
+                        <div id="task-list-container" class="space-y-3">
+                            <!-- Task items will be injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Task Modal -->
+    <div id="task-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <div class="p-4 border-b">
+                <h3 id="task-modal-title" class="text-xl font-semibold">Tạo công việc mới</h3>
+            </div>
+            <form id="task-form" class="flex-grow p-6 space-y-4 overflow-y-auto">
+                <input type="hidden" id="task-id">
+                <div>
+                    <label for="task-name" class="block text-sm font-medium text-slate-700">Tên công việc</label>
+                    <input type="text" id="task-name" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="task-assigner" class="block text-sm font-medium text-slate-700">Người giao</label>
+                        <select id="task-assigner" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500"></select>
+                    </div>
+                    <div>
+                        <label for="task-assignee" class="block text-sm font-medium text-slate-700">Người thực hiện</label>
+                        <select id="task-assignee" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500"></select>
+                    </div>
+                </div>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="task-due-date" class="block text-sm font-medium text-slate-700">Ngày đến hạn</label>
+                        <input type="date" id="task-due-date" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500">
+                    </div>
+                    <div>
+                        <label for="task-group" class="block text-sm font-medium text-slate-700">Nhóm công việc</label>
+                        <input type="text" id="task-group" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500" placeholder="VD: Triển khai, Báo cáo...">
+                    </div>
+                </div>
+                <div>
+                    <label for="task-content" class="block text-sm font-medium text-slate-700">Nội dung công việc</label>
+                    <textarea id="task-content" rows="4" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500"></textarea>
+                </div>
+                 <div>
+                    <label for="task-tags" class="block text-sm font-medium text-slate-700">Tags (cách nhau bởi dấu phẩy)</label>
+                    <input type="text" id="task-tags" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500" placeholder="VD: frontend, bug, ...">
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="task-important" class="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500">
+                    <label for="task-important" class="ml-2 block text-sm text-slate-900">Đây là công việc quan trọng</label>
+                </div>
+            </form>
+            <div class="p-4 bg-slate-50 border-t flex justify-end space-x-2">
+                <button id="btn-cancel-task" type="button" class="bg-white py-2 px-4 border border-slate-300 rounded-md shadow-sm text-sm font-medium text-slate-700 hover:bg-slate-50">Hủy</button>
+                <button id="btn-save-task" type="button" class="bg-sky-600 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-sky-700">Lưu công việc</button>
             </div>
         </div>
     </div>
@@ -144,9 +313,18 @@
         // --- MOCK DATA ---
         const today = new Date();
         const todayStr = today.toISOString().slice(0, 10);
-        const oneWeekAgo = new Date(today);
-        oneWeekAgo.setDate(today.getDate() - 7);
-        const oneWeekAgoStr = oneWeekAgo.toISOString().slice(0, 10);
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().slice(0,10);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const tomorrowStr = tomorrow.toISOString().slice(0, 10);
+        const nextWeek = new Date(today);
+        nextWeek.setDate(today.getDate() + 7);
+        const nextWeekStr = nextWeek.toISOString().slice(0, 10);
+        const lastWeek = new Date(today);
+        lastWeek.setDate(today.getDate() - 7);
+        const lastWeekStr = lastWeek.toISOString().slice(0, 10);
 
         const employees = [
             { id: 'NV01', name: 'Nguyễn Văn An' },
@@ -158,64 +336,105 @@
             { id: 'ST', name: 'Quận Sơn Trà', center: [16.0805, 108.2422], zoom: 14 },
             { id: 'LC', name: 'Quận Liên Chiểu', center: [16.1035, 108.1408], zoom: 13 }
         ];
-        const visits = [
-            // NV01 - Nguyễn Văn An
-            { id: 'V001', employeeId: 'NV01', customerName: 'Tạp hóa cô Hoa', storeName: 'Tạp hóa cô Hoa', phone: '0905111222', isPotential: false, creationDate: '2023-01-15', taskContent: 'Kiểm tra tồn kho', notes: 'Hàng sắp hết', timestamp: `${todayStr}T08:30:00`, status: 'checked-in', location: { lat: 16.054407, lng: 108.202164 }, regionId: 'HC' },
-            { id: 'V002', employeeId: 'NV01', customerName: 'Siêu thị mini K-Mart', storeName: 'K-Mart Nguyễn Văn Linh', phone: '0905333444', isPotential: true, creationDate: '2024-05-20', taskContent: 'Giới thiệu sản phẩm mới', notes: 'Khách hàng quan tâm', timestamp: `${todayStr}T10:15:00`, status: 'checked-in', location: { lat: 16.060963, lng: 108.214844 }, regionId: 'HC' },
-            { id: 'V003', employeeId: 'NV01', customerName: 'Anh Long (khách mới)', storeName: 'Cửa hàng tiện lợi', phone: '0913555666', isPotential: false, creationDate: todayStr, taskContent: 'Chào hàng', notes: 'Hẹn gặp lại vào tuần sau', timestamp: `${todayStr}T14:00:00`, status: 'checked-in', location: { lat: 16.069138, lng: 108.225334 }, regionId: 'HC' },
-            { id: 'V009', employeeId: 'NV01', customerName: 'Nhà sách Fahasa', storeName: 'Fahasa Lê Duẩn', phone: '0913555777', isPotential: false, creationDate: '2022-11-10', taskContent: 'Báo giá văn phòng phẩm', notes: '', timestamp: `${todayStr}T16:00:00`, status: 'planned', location: { lat: 16.065, lng: 108.219 }, regionId: 'HC' },
-
-            // NV02 - Trần Thị Bình
-            { id: 'V004', employeeId: 'NV02', customerName: 'Nhà hàng Biển Đông', storeName: 'Nhà hàng Biển Đông', phone: '0987654321', isPotential: false, creationDate: '2023-06-01', taskContent: 'Thu công nợ', notes: 'Đã thanh toán đủ', timestamp: `${todayStr}T09:00:00`, status: 'checked-in', location: { lat: 16.0745, lng: 108.243 }, regionId: 'ST' },
-            { id: 'V005', employeeId: 'NV02', customerName: 'Khách sạn Alacarte', storeName: 'Khách sạn Alacarte', phone: '02363959888', isPotential: true, creationDate: '2024-01-01', taskContent: 'Giao hàng', notes: '', timestamp: `${todayStr}T11:30:00`, status: 'planned', location: { lat: 16.081, lng: 108.248 }, regionId: 'ST' },
-
-            // NV03 - Lê Minh Cường
-            { id: 'V006', employeeId: 'NV03', customerName: 'Quán cafe The Hideout', storeName: 'The Hideout', phone: '0935123789', isPotential: false, creationDate: oneWeekAgoStr, taskContent: 'Giới thiệu cafe rang xay mới', notes: 'Chủ quán muốn dùng thử', timestamp: `${todayStr}T09:45:00`, status: 'checked-in', location: { lat: 16.115, lng: 108.150 }, regionId: 'LC' },
-            { id: 'V007', employeeId: 'NV03', customerName: 'Đại lý bia nước ngọt', storeName: 'Đại lý ABC', phone: '0944987654', isPotential: false, creationDate: '2021-02-02', taskContent: 'Kiểm tra trưng bày', notes: 'Trưng bày đẹp, đúng chuẩn', timestamp: `${todayStr}T13:30:00`, status: 'checked-in', location: { lat: 16.100, lng: 108.145 }, regionId: 'LC' },
-            { id: 'V008', employeeId: 'NV03', customerName: 'Nhà xe XYZ', storeName: 'Nhà xe XYZ', phone: '0944987655', isPotential: false, creationDate: '2021-02-02', taskContent: 'Kiểm tra trưng bày', notes: 'Trưng bày đẹp, đúng chuẩn', timestamp: `${todayStr}T15:30:00`, status: 'planned', location: { lat: 16.095, lng: 108.142 }, regionId: 'LC' },
+        const checkins = [
+            { id: 'V001', employeeId: 'NV01', customerName: 'Bếp trưởng Hùng', storeName: 'Nhà hàng For You', phone: '0905111222', isPotential: false, taskContent: 'Giao 20kg tôm sú loại 1', timestamp: `${todayStr}T08:25:00`, location: { lat: 16.054407, lng: 108.202164 }, regionId: 'HC' },
+            { id: 'V002', employeeId: 'NV01', customerName: 'Chị Lan (thu mua)', storeName: 'Khách sạn Grand Mercure', phone: '0905333444', isPotential: true, taskContent: 'Giới thiệu sản phẩm cá hồi Nauy fillet', timestamp: `${todayStr}T10:15:00`, location: { lat: 16.060963, lng: 108.214844 }, regionId: 'HC' },
+            { id: 'V003', employeeId: 'NV01', customerName: 'Anh Ba', storeName: 'Vựa hải sản Biển Rạng', phone: '0913555666', isPotential: true, taskContent: 'Chào hàng tôm hùm Alaska', timestamp: `${todayStr}T14:00:00`, location: { lat: 16.069138, lng: 108.225334 }, regionId: 'HC' },
+            { id: 'V004', employeeId: 'NV02', customerName: 'Anh Dũng (bếp)', storeName: 'Nhà hàng hải sản Bé Mặn', phone: '0987654321', isPotential: false, taskContent: 'Thu công nợ tháng trước', timestamp: `${todayStr}T09:00:00`, location: { lat: 16.113, lng: 108.252 }, regionId: 'ST' },
+            { id: 'V005', employeeId: 'NV02', customerName: 'Chị Oanh (quản lý)', storeName: 'Siêu thị Lotte Mart', phone: '02363959888', isPotential: true, taskContent: 'Gửi báo giá hàu sữa Pháp và bào ngư', timestamp: `${todayStr}T11:30:00`, location: { lat: 16.052, lng: 108.216 }, regionId: 'HC' },
+            { id: 'V006', employeeId: 'NV03', customerName: 'Chị Thảo', storeName: 'Chuỗi cửa hàng Hải sản sạch', phone: '0935123789', isPotential: false, taskContent: 'Kiểm tra chất lượng trưng bày sản phẩm', timestamp: `${todayStr}T09:45:00`, location: { lat: 16.115, lng: 108.150 }, regionId: 'LC' },
+            { id: 'V007', employeeId: 'NV03', customerName: 'Anh Phong', storeName: 'Nhà hàng Cua Bể', phone: '0944987654', isPotential: false, taskContent: 'Giao hàng cua Cà Mau', timestamp: `${todayStr}T13:30:00`, location: { lat: 16.071, lng: 108.223 }, regionId: 'HC' },
+        ];
+        let tasks = [
+            { id: 1, name: 'Làm việc với nhà cung cấp Vua Cua', important: true, assignerId: 'NV02', assigneeId: 'NV01', dueDate: tomorrowStr, group: 'Nguồn hàng', content: 'Thương lượng giá mới cho lô hàng cua hoàng đế sắp tới.', tags: ['nhà cung cấp', 'giá', 'cua hoàng đế'], status: 'incomplete' },
+            { id: 2, name: 'Lên chương trình khuyến mãi 30/4', important: true, assignerId: 'NV02', assigneeId: 'NV03', dueDate: yesterdayStr, group: 'Marketing', content: 'Tạo combo hải sản cho gia đình, áp dụng từ 25/4 đến 2/5.', tags: ['khuyến mãi', 'marketing'], status: 'incomplete' },
+            { id: 3, name: 'Kiểm kê kho đông lạnh', important: false, assignerId: 'NV02', assigneeId: 'NV02', dueDate: nextWeekStr, group: 'Vận hành', content: 'Kiểm tra số lượng và HSD của tất cả mặt hàng trong kho đông lạnh.', tags: ['kho', 'kiểm kê'], status: 'incomplete' },
+            { id: 4, name: 'Gửi báo cáo sales tuần', important: false, assignerId: 'NV02', assigneeId: 'NV01', dueDate: todayStr, group: 'Báo cáo', content: 'Gửi báo cáo cho quản lý trước 5h chiều.', tags: ['báo cáo', 'sales'], status: 'completed' },
+            { id: 5, name: 'Phỏng vấn ứng viên Sales mới', important: false, assignerId: 'NV01', assigneeId: 'NV02', dueDate: tomorrowStr, group: 'Nhân sự', content: 'Phỏng vấn vòng 2 cho vị trí nhân viên kinh doanh khu vực Liên Chiểu.', tags: ['tuyển dụng', 'phỏng vấn'], status: 'incomplete' },
+            { id: 6, name: 'Thiết kế catalogue sản phẩm mới', important: true, assignerId: 'NV02', assigneeId: 'NV03', dueDate: nextWeekStr, group: 'Marketing', content: 'Bao gồm các sản phẩm mới: cua Alaska, vẹm xanh New Zealand.', tags: ['thiết kế', 'catalogue', 'sản phẩm mới'], status: 'incomplete' },
+            { id: 7, name: 'Đối soát công nợ với nhà hàng A', important: false, assignerId: 'NV01', assigneeId: 'NV01', dueDate: lastWeekStr, group: 'Công nợ', content: 'Đối soát công nợ quý 2/2025.', tags: ['công nợ', 'kế toán'], status: 'completed' },
+            { id: 8, name: 'Khảo sát giá thị trường cho tôm hùm', important: false, assignerId: 'NV02', assigneeId: 'NV03', dueDate: tomorrowStr, group: 'Nghiên cứu thị trường', content: 'Khảo sát giá bán lẻ tại các siêu thị lớn.', tags: ['giá', 'thị trường'], status: 'incomplete' },
         ];
         
-        const customerStatusConfig = {
-            'potential': { name: 'Tiềm năng', color: '#f97316' }, // orange-500
-            'new': { name: 'Mới', color: '#22c55e' }, // green-500
-            'old': { name: 'Cũ', color: '#3b82f6' } // blue-500
+        const customerTypeConfig = {
+            'potential': { name: 'Khách hàng tiềm năng', color: '#f97316' },
+            'regular': { name: 'Khách hàng', color: '#3b82f6' }
         };
 
         // --- DOM ELEMENTS ---
+        const navItems = document.querySelectorAll('.nav-item');
+
+        // Sales Dashboard Elements
         const dateFilter = document.getElementById('date-filter');
         const employeeFilter = document.getElementById('employee-filter');
         const regionFilter = document.getElementById('region-filter');
         const checkinList = document.getElementById('checkin-list');
         const checkinListTitle = document.getElementById('checkin-list-title');
         const checkinSummary = document.getElementById('checkin-summary');
-
-        // --- MAP INITIALIZATION ---
-        const map = L.map('map').setView([16.0544, 108.2022], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
         
-        let markersLayer = new L.FeatureGroup().addTo(map);
-        let plannedRouteControl = null;
-        let checkedInRouteControl = null;
+        // Task Management Elements
+        const taskListContainer = document.getElementById('task-list-container');
+        const taskModal = document.getElementById('task-modal');
+        const btnCreateTask = document.getElementById('btn-create-task');
+        const btnCancelTask = document.getElementById('btn-cancel-task');
+        const btnSaveTask = document.getElementById('btn-save-task');
+        const taskFilterNav = document.getElementById('task-filter-nav');
+        // Advanced task filters
+        const taskAssigneeFilter = document.getElementById('task-assignee-filter');
+        const taskAssignerFilter = document.getElementById('task-assigner-filter');
+        const taskGroupFilter = document.getElementById('task-group-filter');
+        const taskTagFilter = document.getElementById('task-tag-filter');
+        const taskStartDateFilter = document.getElementById('task-start-date-filter');
+        const taskEndDateFilter = document.getElementById('task-end-date-filter');
+        
+        // --- MAP INITIALIZATION ---
+        let map = null; // Initialize later
+        let markersLayer = null;
         let legendControl = null;
+        let currentTaskFilter = 'all';
 
-        // --- HELPER FUNCTIONS ---
-        function getCustomerStatus(visit) {
-            if (visit.isPotential) {
-                return 'potential';
+        // --- NAVIGATION LOGIC ---
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(page => page.classList.add('hidden'));
+            document.getElementById(pageId).classList.remove('hidden');
+            navItems.forEach(item => {
+                item.classList.toggle('active', item.dataset.page === pageId);
+            });
+            if (pageId === 'page-sales-dashboard' && !map) {
+                initializeSalesDashboard();
             }
-            const creationDate = new Date(visit.creationDate);
-            const oneMonthAgo = new Date();
-            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-            if (creationDate > oneMonthAgo) {
-                return 'new';
+            if (pageId === 'page-task-management') {
+                resetTaskFilters();
+                populateTaskAdvancedFilters();
+                updateTaskDisplay();
             }
-            return 'old';
         }
 
-        // --- UI FUNCTIONS ---
-        function populateFilters() {
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                switchPage(item.dataset.page);
+            });
+        });
+
+        // --- SALES DASHBOARD LOGIC ---
+        function initializeSalesDashboard() {
+            map = L.map('map').setView([16.0544, 108.2022], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            markersLayer = new L.FeatureGroup().addTo(map);
+            
+            populateSalesFilters();
+            updateSalesDisplay();
+            renderLegend();
+
+            [dateFilter, employeeFilter, regionFilter].forEach(el => el.addEventListener('change', updateSalesDisplay));
+        }
+
+        function getCustomerType(checkin) { return checkin.isPotential ? 'potential' : 'regular'; }
+
+        function populateSalesFilters() {
             employees.forEach(emp => {
                 const option = document.createElement('option');
                 option.value = emp.id;
@@ -233,54 +452,31 @@
 
         function renderCheckinList(data) {
             checkinList.innerHTML = '';
-            const checkedInCount = data.filter(item => item.status === 'checked-in').length;
             const totalCount = data.length;
-
-            if (data.length === 0) {
-                checkinList.innerHTML = `<div class="text-center text-gray-500 p-4">Không có dữ liệu.</div>`;
-                checkinListTitle.textContent = `Kế hoạch trong ngày`;
-                checkinSummary.textContent = `Đã check-in: 0 / 0`;
+            if (totalCount === 0) {
+                checkinList.innerHTML = `<div class="text-center text-slate-500 p-4">Không có dữ liệu.</div>`;
+                checkinListTitle.textContent = `Danh sách Check-in`;
+                checkinSummary.textContent = `Tổng số: 0`;
                 return;
             }
-
             const employeeName = employeeFilter.value !== 'all' ? employees.find(e => e.id === employeeFilter.value).name : '';
-            
-            // Update title and summary
-            checkinListTitle.textContent = employeeName ? `Lộ trình của ${employeeName}` : `Kế hoạch trong ngày`;
-            checkinSummary.textContent = `Đã check-in: ${checkedInCount} / ${totalCount}`;
-            
+            checkinListTitle.textContent = employeeName ? `Lộ trình của ${employeeName}` : `Danh sách Check-in`;
+            checkinSummary.textContent = `Tổng số: ${totalCount}`;
             data.forEach((item) => {
                 const employee = employees.find(e => e.id === item.employeeId);
-                const time = item.status === 'checked-in' ? new Date(item.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa check-in';
+                const time = new Date(item.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                 const itemEl = document.createElement('div');
-                itemEl.className = 'p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-all duration-200';
+                itemEl.className = 'p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all duration-200';
                 itemEl.dataset.lat = item.location.lat;
                 itemEl.dataset.lng = item.location.lng;
-                itemEl.dataset.visitId = item.id;
-                
-                const customerStatus = getCustomerStatus(item);
-                const statusInfo = customerStatusConfig[customerStatus];
+                itemEl.dataset.checkinId = item.id;
+                const customerType = getCustomerType(item);
+                const typeInfo = customerTypeConfig[customerType];
                 let customerBadge = '';
-                if (customerStatus !== 'old') {
-                    customerBadge = `<span class="text-xs font-medium px-2 py-0.5 rounded-full mt-1 inline-block" style="background-color:${statusInfo.color}20; color:${statusInfo.color};">${statusInfo.name}</span>`;
+                if (item.isPotential) {
+                    customerBadge = `<span class="text-xs font-medium px-2 py-0.5 rounded-full mt-1 inline-block" style="background-color:${typeInfo.color}20; color:${typeInfo.color};">${typeInfo.name}</span>`;
                 }
-
-                itemEl.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div class="flex-grow">
-                            <p class="font-semibold text-sky-700">${item.storeName}</p>
-                            <p class="text-sm text-gray-600">${item.customerName}</p>
-                            ${employeeFilter.value === 'all' ? `<p class="text-xs text-gray-500 pt-1"><i class="fas fa-user mr-1"></i>${employee.name}</p>` : ''}
-                        </div>
-                        <div class="text-right flex-shrink-0 ml-2">
-                             <p class="text-sm font-medium text-gray-800">${time}</p>
-                             ${customerBadge}
-                        </div>
-                    </div>
-                    <div class="mt-2 text-sm text-gray-700">
-                        <p><strong>Công việc:</strong> ${item.taskContent}</p>
-                    </div>
-                `;
+                itemEl.innerHTML = `<div class="flex justify-between items-start"><div class="flex-grow"><p class="font-semibold text-sky-700">${item.storeName}</p><p class="text-sm text-slate-600">${item.customerName}</p>${employeeFilter.value === 'all' ? `<p class="text-xs text-slate-500 pt-1"><i class="fas fa-user mr-1"></i>${employee.name}</p>` : ''}</div><div class="text-right flex-shrink-0 ml-2"><p class="text-sm font-medium text-slate-800">${time}</p>${customerBadge}</div></div><div class="mt-2 text-sm text-slate-700"><p><strong>Công việc:</strong> ${item.taskContent}</p></div>`;
                 itemEl.addEventListener('click', () => {
                     map.setView([item.location.lat, item.location.lng], 16);
                     document.querySelectorAll('#checkin-list > div').forEach(el => el.classList.remove('list-item-selected'));
@@ -292,129 +488,302 @@
 
         function renderMap(data) {
             markersLayer.clearLayers();
-            if (plannedRouteControl) map.removeControl(plannedRouteControl);
-            if (checkedInRouteControl) map.removeControl(checkedInRouteControl);
-            plannedRouteControl = null;
-            checkedInRouteControl = null;
-
             if (data.length === 0) return;
-
-            const selectedEmployee = employeeFilter.value;
-
-            if (selectedEmployee === 'all') {
-                data.forEach(item => {
-                    const employee = employees.find(e => e.id === item.employeeId);
-                    const marker = L.marker([item.location.lat, item.location.lng], {
-                        opacity: item.status === 'checked-in' ? 1.0 : 0.6
-                    }).addTo(markersLayer);
-                    marker.bindPopup(`<b>${item.storeName}</b><br>NV: ${employee.name}<br>Trạng thái: ${item.status === 'checked-in' ? 'Đã Check-in' : 'Chưa Check-in'}`);
-                });
-                if (data.length > 0) {
-                    const groupBounds = markersLayer.getBounds();
-                    map.fitBounds(groupBounds.pad(0.3));
-                }
-            } else {
-                const employeeData = data.filter(c => c.employeeId === selectedEmployee).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-                if (employeeData.length === 0) return;
-                
-                employeeData.forEach((item, index) => {
-                    const customerStatus = getCustomerStatus(item);
-                    const statusInfo = customerStatusConfig[customerStatus];
-                    const numberedIcon = L.divIcon({
-                        className: 'leaflet-div-icon',
-                        iconSize: [30, 30],
-                        iconAnchor: [15, 15],
-                        html: `<div style="background-color: ${statusInfo.color}; width:100%; height:100%; border-radius:50%; display:flex; align-items:center; justify-content:center;">${index + 1}</div>`
-                    });
-                    const marker = L.marker([item.location.lat, item.location.lng], { icon: numberedIcon }).addTo(markersLayer);
-                    const time = item.status === 'checked-in' ? new Date(item.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Chưa check-in';
-                    marker.bindPopup(`<b>#${index + 1}: ${item.storeName}</b><br>Loại KH: ${statusInfo.name}<br>Thời gian: ${time}<br>Công việc: ${item.taskContent}`);
-                });
-
-                const allWaypoints = employeeData.map(item => L.latLng(item.location.lat, item.location.lng));
-                if (allWaypoints.length > 1) {
-                    plannedRouteControl = L.routing.control({
-                        waypoints: allWaypoints,
-                        fitSelectedRoutes: true,
-                        routeWhileDragging: false, addWaypoints: false, createMarker: () => null,
-                        lineOptions: { styles: [{ color: 'gray', opacity: 0.8, weight: 5, dashArray: '10, 10' }] }
-                    }).addTo(map);
-                }
-
-                const checkedInWaypoints = employeeData.filter(item => item.status === 'checked-in').map(item => L.latLng(item.location.lat, item.location.lng));
-                if (checkedInWaypoints.length > 1) {
-                    checkedInRouteControl = L.routing.control({
-                        waypoints: checkedInWaypoints,
-                        fitSelectedRoutes: false,
-                        routeWhileDragging: false, addWaypoints: false, createMarker: () => null,
-                        lineOptions: { styles: [{ color: '#0284c7', opacity: 0.8, weight: 6 }] }
-                    }).addTo(map);
-                }
+            data.forEach(item => {
+                const type = getCustomerType(item);
+                const typeInfo = customerTypeConfig[type];
+                const markerIcon = L.divIcon({ className: 'leaflet-div-icon', iconSize: [16, 16], html: `<div style="background-color: ${typeInfo.color}; width:100%; height:100%; border-radius:50%;"></div>` });
+                const marker = L.marker([item.location.lat, item.location.lng], { icon: markerIcon }).addTo(markersLayer);
+                marker.bindTooltip(item.storeName, { permanent: true, direction: 'bottom', offset: [0, 10], className: 'customer-label' }).openTooltip();
+                const employee = employees.find(e => e.id === item.employeeId);
+                const time = new Date(item.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                marker.bindPopup(`<b>${item.storeName}</b><br>NV: ${employee.name}<br>Loại: ${typeInfo.name}<br>Thời gian: ${time}`);
+            });
+            if (data.length > 0) {
+                const groupBounds = markersLayer.getBounds();
+                if (Object.keys(groupBounds).length > 0) map.fitBounds(groupBounds.pad(0.2));
             }
         }
         
         function renderLegend() {
-            if (legendControl) {
-                map.removeControl(legendControl);
-            }
+            if (legendControl) map.removeControl(legendControl);
             legendControl = L.control({position: 'bottomright'});
             legendControl.onAdd = function (map) {
                 const div = L.DomUtil.create('div', 'info legend');
                 let content = '<strong>Chú giải</strong><br>';
-                
-                content += '<b>Loại khách hàng (Điểm):</b><br>';
-                content += `<i style="background:${customerStatusConfig.potential.color}"></i> ${customerStatusConfig.potential.name}<br>`;
-                content += `<i style="background:${customerStatusConfig.new.color}"></i> ${customerStatusConfig.new.name}<br>`;
-                content += `<i style="background:${customerStatusConfig.old.color}"></i> Khách hàng cũ<br>`;
-
-                content += '<br><b>Lộ trình:</b><br>';
-                content += '<i class="route" style="background: #0284c7;"></i> Đã đi<br>';
-                content += '<i class="route" style="background: repeating-linear-gradient(90deg, gray 0, gray 5px, transparent 5px, transparent 10px);"></i> Kế hoạch<br>';
-
+                content += `<i style="background:${customerTypeConfig.potential.color}"></i> ${customerTypeConfig.potential.name}<br>`;
+                content += `<i style="background:${customerTypeConfig.regular.color}"></i> ${customerTypeConfig.regular.name}<br>`;
                 div.innerHTML = content;
                 return div;
             };
             legendControl.addTo(map);
         }
 
-        function updateDisplay() {
+        function updateSalesDisplay() {
             const selectedDate = dateFilter.value;
             const selectedEmployee = employeeFilter.value;
             const selectedRegion = regionFilter.value;
-
-            let filteredData = visits.filter(c => c.timestamp && c.timestamp.startsWith(selectedDate));
-            if (selectedEmployee !== 'all') {
-                filteredData = filteredData.filter(c => c.employeeId === selectedEmployee);
-            }
-            if (selectedRegion !== 'all') {
-                filteredData = filteredData.filter(c => c.regionId === selectedRegion);
-            }
-            
+            let filteredData = checkins.filter(c => c.timestamp && c.timestamp.startsWith(selectedDate));
+            if (selectedEmployee !== 'all') filteredData = filteredData.filter(c => c.employeeId === selectedEmployee);
+            if (selectedRegion !== 'all') filteredData = filteredData.filter(c => c.regionId === selectedRegion);
             if (selectedRegion !== 'all') {
                 const region = regions.find(r => r.id === selectedRegion);
-                if (region) { map.setView(region.center, region.zoom); }
+                if (region) map.setView(region.center, region.zoom);
             } else if (filteredData.length === 0) {
                  map.setView([16.0544, 108.2022], 13);
             }
-            
-            const sortedData = filteredData.sort((a,b) => {
-                const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-                const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-                return timeA - timeB;
-            });
+            const sortedData = filteredData.sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
             renderCheckinList(sortedData);
             renderMap(sortedData);
         }
 
-        // --- INITIAL LOAD ---
-        populateFilters();
-        updateDisplay();
-        renderLegend();
+        // --- TASK MANAGEMENT LOGIC ---
+        function resetTaskFilters() {
+            currentTaskFilter = 'all'; 
+            taskAssigneeFilter.value = 'all';
+            taskAssignerFilter.value = 'all';
+            taskGroupFilter.value = 'all';
+            taskTagFilter.value = 'all';
+            taskStartDateFilter.value = '';
+            taskEndDateFilter.value = '';
+        }
 
-        // --- EVENT LISTENERS ---
-        dateFilter.addEventListener('change', updateDisplay);
-        employeeFilter.addEventListener('change', updateDisplay);
-        regionFilter.addEventListener('change', updateDisplay);
+        function updateTaskFilterTabs() {
+            document.querySelectorAll('.task-filter-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.filter === currentTaskFilter);
+            });
+        }
+
+        function renderTaskList(filteredTasks) {
+            taskListContainer.innerHTML = '';
+            if (filteredTasks.length === 0) {
+                taskListContainer.innerHTML = `<div class="text-center text-slate-500 p-8">Không có công việc nào phù hợp.</div>`;
+                return;
+            }
+            filteredTasks.sort((a,b) => new Date(a.dueDate) - new Date(b.dueDate)).forEach(task => {
+                const assignee = employees.find(e => e.id === task.assigneeId);
+                const isOverdue = task.status === 'incomplete' && new Date(task.dueDate) < new Date(todayStr);
+                const taskEl = document.createElement('div');
+                taskEl.className = `p-4 border border-slate-200 rounded-lg flex items-center justify-between hover:bg-slate-50 transition-colors duration-200 ${task.status === 'completed' ? 'bg-slate-100' : 'bg-white'}`;
+                
+                const mainContent = `
+                    <div class="flex items-center flex-grow">
+                        ${task.important ? '<i class="fas fa-star text-amber-500 mr-4"></i>' : '<i class="far fa-star text-slate-400 mr-4"></i>'}
+                        <div class="${task.status === 'completed' ? 'task-item-completed' : ''}">
+                            <p class="font-semibold text-slate-800">${task.name}</p>
+                            <p class="text-sm text-slate-500">Người thực hiện: ${assignee ? assignee.name : 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0 ml-4">
+                        <p class="text-sm font-medium ${isOverdue ? 'text-red-600' : 'text-slate-700'}">Hạn: ${new Date(task.dueDate).toLocaleDateString('vi-VN')}</p>
+                        <div class="flex flex-wrap justify-end gap-1 mt-1">
+                            ${task.tags.map(tag => `<span class="text-xs bg-slate-200 text-slate-800 px-2 py-0.5 rounded-full">${tag}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+
+                taskEl.innerHTML = `
+                    <div class="flex items-center flex-grow">
+                        <input type="checkbox" class="task-complete-toggle h-5 w-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500 mr-4" data-task-id="${task.id}" ${task.status === 'completed' ? 'checked' : ''}>
+                        <div class="flex-grow cursor-pointer" data-task-id="${task.id}">
+                            ${mainContent}
+                        </div>
+                    </div>
+                `;
+                
+                taskEl.querySelector('.cursor-pointer').addEventListener('click', (e) => {
+                    const taskId = e.currentTarget.dataset.taskId;
+                    openTaskModal(parseInt(taskId));
+                });
+                taskListContainer.appendChild(taskEl);
+            });
+        }
+        
+        function updateTaskDisplay() {
+            updateTaskFilterTabs();
+            let filteredTasks = [...tasks];
+
+            // Tab filters
+            switch(currentTaskFilter) {
+                case 'important':
+                    filteredTasks = filteredTasks.filter(t => t.important);
+                    break;
+                case 'overdue':
+                    filteredTasks = filteredTasks.filter(t => t.status === 'incomplete' && new Date(t.dueDate) < new Date(todayStr));
+                    break;
+                case 'incomplete':
+                    filteredTasks = filteredTasks.filter(t => t.status === 'incomplete');
+                    break;
+                case 'completed':
+                    filteredTasks = filteredTasks.filter(t => t.status === 'completed');
+                    break;
+            }
+
+            // Advanced filters
+            const assigneeId = taskAssigneeFilter.value;
+            if (assigneeId !== 'all') {
+                filteredTasks = filteredTasks.filter(t => t.assigneeId === assigneeId);
+            }
+            const assignerId = taskAssignerFilter.value;
+            if (assignerId !== 'all') {
+                filteredTasks = filteredTasks.filter(t => t.assignerId === assignerId);
+            }
+            const group = taskGroupFilter.value;
+            if (group !== 'all') {
+                filteredTasks = filteredTasks.filter(t => t.group === group);
+            }
+            const tag = taskTagFilter.value;
+            if (tag !== 'all') {
+                filteredTasks = filteredTasks.filter(t => t.tags.includes(tag));
+            }
+            const startDate = taskStartDateFilter.value;
+            if (startDate) {
+                filteredTasks = filteredTasks.filter(t => t.dueDate >= startDate);
+            }
+            const endDate = taskEndDateFilter.value;
+            if (endDate) {
+                filteredTasks = filteredTasks.filter(t => t.dueDate <= endDate);
+            }
+
+            renderTaskList(filteredTasks);
+        }
+
+        function populateTaskAdvancedFilters() {
+            // Assignee and Assigner
+            [taskAssigneeFilter, taskAssignerFilter].forEach(select => {
+                select.innerHTML = '<option value="all">Tất cả</option>';
+                employees.forEach(emp => {
+                    const option = document.createElement('option');
+                    option.value = emp.id;
+                    option.textContent = emp.name;
+                    select.appendChild(option);
+                });
+            });
+
+            // Groups
+            taskGroupFilter.innerHTML = '<option value="all">Tất cả</option>';
+            const groups = [...new Set(tasks.map(t => t.group))];
+            groups.forEach(group => {
+                const option = document.createElement('option');
+                option.value = group;
+                option.textContent = group;
+                taskGroupFilter.appendChild(option);
+            });
+
+            // Tags
+            taskTagFilter.innerHTML = '<option value="all">Tất cả</option>';
+            const tags = [...new Set(tasks.flatMap(t => t.tags))];
+            tags.forEach(tag => {
+                const option = document.createElement('option');
+                option.value = tag;
+                option.textContent = tag;
+                taskTagFilter.appendChild(option);
+            });
+        }
+
+        function populateTaskModalDropdowns() {
+            const assignerSelect = document.getElementById('task-assigner');
+            const assigneeSelect = document.getElementById('task-assignee');
+            assignerSelect.innerHTML = '';
+            assigneeSelect.innerHTML = '';
+            employees.forEach(emp => {
+                const option1 = document.createElement('option');
+                option1.value = emp.id;
+                option1.textContent = emp.name;
+                const option2 = option1.cloneNode(true);
+                assignerSelect.appendChild(option1);
+                assigneeSelect.appendChild(option2);
+            });
+        }
+
+        function openTaskModal(taskId = null) {
+            const form = document.getElementById('task-form');
+            form.reset();
+            document.getElementById('task-due-date').value = todayStr;
+
+            if (taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    document.getElementById('task-modal-title').textContent = 'Chỉnh sửa công việc';
+                    document.getElementById('task-id').value = task.id;
+                    document.getElementById('task-name').value = task.name;
+                    document.getElementById('task-assigner').value = task.assignerId;
+                    document.getElementById('task-assignee').value = task.assigneeId;
+                    document.getElementById('task-due-date').value = task.dueDate;
+                    document.getElementById('task-group').value = task.group;
+                    document.getElementById('task-content').value = task.content;
+                    document.getElementById('task-tags').value = task.tags.join(', ');
+                    document.getElementById('task-important').checked = task.important;
+                }
+            } else {
+                document.getElementById('task-modal-title').textContent = 'Tạo công việc mới';
+            }
+            taskModal.classList.remove('hidden');
+            taskModal.classList.add('flex');
+        }
+
+        function closeTaskModal() {
+            taskModal.classList.add('hidden');
+            taskModal.classList.remove('flex');
+        }
+
+        function saveTask() {
+            const id = document.getElementById('task-id').value;
+            const taskData = {
+                name: document.getElementById('task-name').value,
+                important: document.getElementById('task-important').checked,
+                assignerId: document.getElementById('task-assigner').value,
+                assigneeId: document.getElementById('task-assignee').value,
+                dueDate: document.getElementById('task-due-date').value,
+                group: document.getElementById('task-group').value,
+                content: document.getElementById('task-content').value,
+                tags: document.getElementById('task-tags').value.split(',').map(tag => tag.trim()).filter(Boolean),
+            };
+
+            if (id) {
+                const index = tasks.findIndex(t => t.id == id);
+                if (index !== -1) {
+                    tasks[index] = { ...tasks[index], ...taskData };
+                }
+            } else {
+                taskData.id = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+                taskData.status = 'incomplete'; // New tasks are always incomplete
+                tasks.push(taskData);
+            }
+            populateTaskAdvancedFilters(); // Repopulate in case of new group/tag
+            updateTaskDisplay();
+            closeTaskModal();
+        }
+
+        taskFilterNav.addEventListener('click', (e) => {
+            if (e.target.matches('.task-filter-tab')) {
+                currentTaskFilter = e.target.dataset.filter;
+                updateTaskDisplay();
+            }
+        });
+
+        taskListContainer.addEventListener('change', e => {
+            if (e.target.matches('.task-complete-toggle')) {
+                const taskId = parseInt(e.target.dataset.taskId);
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    task.status = e.target.checked ? 'completed' : 'incomplete';
+                    updateTaskDisplay();
+                }
+            }
+        });
+
+        [taskAssigneeFilter, taskAssignerFilter, taskGroupFilter, taskTagFilter, taskStartDateFilter, taskEndDateFilter].forEach(el => {
+            el.addEventListener('change', updateTaskDisplay);
+        });
+
+        btnCreateTask.addEventListener('click', () => openTaskModal());
+        btnCancelTask.addEventListener('click', closeTaskModal);
+        btnSaveTask.addEventListener('click', saveTask);
+        
+        // --- INITIAL LOAD ---
+        switchPage('page-sales-dashboard');
+        populateTaskModalDropdowns();
     });
     </script>
 </body>
