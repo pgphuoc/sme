@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infographic: Lựa Chọn Tech Stack Logistics - Odoo Community vs. Custom Build</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #f7fafc; 
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 450px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .risk-path::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: -20px;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 20px;
+            background-color: #A0AEC0;
+        }
+        .risk-path::after {
+            content: '▼';
+            position: absolute;
+            left: 50%;
+            bottom: -25px;
+            transform: translateX(-50%);
+            color: #A0AEC0;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- 
+    Infographic Plan Summary
+    Narrative: Visualize the strategic choice between "Apply & Extend" (Odoo Community) and "Build & Own" (Spring/React), based on the provided analysis document 277f1e68-c92e-4a6c-941f-506e788e142a.
+    Structure:
+    1.  Header & Core Dilemma: Hook the user with the central choice.
+    2.  Head-to-Head Radar Chart: Multi-criteria comparison.
+    3.  Odoo Gap Analysis: Visually show what's missing in the Community version.
+    4.  5-Year TCO Breakdown: Stacked bar chart to compare cost structures.
+    5.  Biggest Risk Visualization: Simple flowchart for the main risk of each path.
+    6.  Decision Framework: A simple, actionable guide to making the final choice.
+    
+    Visualization Choices:
+    -   Comparison: Radar Chart (Chart.js) - Goal: Compare. Justification: Excellent for multi-criteria evaluation, shows the "shape" of the trade-off.
+    -   Gap Analysis: Structured HTML/CSS List - Goal: Organize. Justification: Clear, scannable, and uses icons for quick comprehension.
+    -   TCO: Stacked Bar Chart (Chart.js) - Goal: Compare. Justification: Shows both total cost difference and the composition of those costs.
+    -   Risk & Decision Flowcharts: Structured HTML/CSS - Goal: Organize. Justification: Simple, effective for showing process/decision flows without complex libraries.
+    
+    Color Palette Selected: Energetic & Playful (#003f5c, #58508d, #bc5090, #ff6361, #ffa600)
+    
+    Confirmation: NEITHER Mermaid JS NOR SVG were used in this output. All graphics are rendered via Chart.js on Canvas or using standard HTML/CSS.
+    -->
+    
+    <div class="container mx-auto p-4 md:p-8">
+
+        <header class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-[#003f5c] mb-4">Odoo Community vs. Custom Build: Lựa Chọn Nền Tảng Logistics Chiến Lược</h1>
+            <p class="text-lg text-gray-600 max-w-3xl mx-auto">Phân tích trực quan giữa việc **"Áp dụng & Mở rộng"** để tối ưu chi phí và **"Xây dựng & Sở hữu"** để đạt lợi thế tối đa.</p>
+        </header>
+
+        <section id="comparison" class="mb-16 card">
+            <h2 class="text-3xl font-bold text-center mb-2">So Sánh Đối Đầu: Bức Tranh Toàn Cảnh</h2>
+            <p class="text-center text-gray-600 mb-8">Đánh giá hai lựa chọn trên các tiêu chí chiến lược. Càng gần tâm, điểm càng thấp.</p>
+            <div class="chart-container h-[450px] md:h-[400px]">
+                <canvas id="radarChart"></canvas>
+            </div>
+            <p class="text-sm text-center text-gray-500 mt-4">Biểu đồ cho thấy sự đánh đổi rõ rệt: Odoo Community mạnh về tốc độ và hiệu quả chi phí, trong khi giải pháp tùy chỉnh vượt trội về khả năng mở rộng, tùy biến và an toàn nâng cấp.</p>
+        </section>
+
+        <section id="gap-analysis" class="mb-16">
+            <h2 class="text-3xl font-bold text-center mb-8">Phân Tích "Khoảng Trống" Chức Năng Của Odoo Community</h2>
+            <div class="card md:col-span-2">
+                 <p class="text-center text-gray-600 mb-6">Đây là những tính năng logistics quan trọng không có sẵn, đòi hỏi nỗ lực từ đội ngũ của bạn. Chi phí "miễn phí" thực chất nằm ở đây.</p>
+                <div class="space-y-4 max-w-2xl mx-auto">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-bold text-[#003f5c]">Hỗ trợ Mã vạch (Barcode)</span>
+                        <span class="font-bold text-sm px-3 py-1 bg-red-100 text-red-700 rounded-full">Cần phát triển/mua</span>
+                    </div>
+                     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-bold text-[#003f5c]">Cross-Docking & Luồng đi tuyến nâng cao</span>
+                        <span class="font-bold text-sm px-3 py-1 bg-red-100 text-red-700 rounded-full">Cần phát triển/mua</span>
+                    </div>
+                     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-bold text-[#003f5c]">Tích hợp nhà vận chuyển (API)</span>
+                        <span class="font-bold text-sm px-3 py-1 bg-red-100 text-red-700 rounded-full">Cần phát triển/mua</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span class="font-bold text-[#003f5c]">Quản lý Chất lượng (QA/QC)</span>
+                        <span class="font-bold text-sm px-3 py-1 bg-red-100 text-red-700 rounded-full">Cần phát triển/mua</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="cost" class="mb-16">
+             <h2 class="text-3xl font-bold text-center mb-8">Phân Tích Tổng Chi Phí Sở Hữu (TCO) - 5 Năm</h2>
+            <div class="card">
+                 <div class="chart-container h-[400px] md:h-[450px]">
+                    <canvas id="tcoChart"></canvas>
+                </div>
+                <p class="text-sm text-center text-gray-500 mt-4">Giải pháp tùy chỉnh có TCO cao hơn đáng kể, chủ yếu do chi phí nhân sự phát triển và bảo trì dài hạn. Odoo Community chuyển gánh nặng chi phí từ bản quyền sang nhân sự nội bộ.</p>
+            </div>
+        </section>
+        
+        <section id="risks" class="mb-16">
+            <h2 class="text-3xl font-bold text-center mb-8">Rủi Ro Lớn Nhất Của Mỗi Con Đường</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-8 mt-12">
+                <div class="text-center">
+                    <h3 class="text-2xl font-bold text-[#58508d] mb-4">Odoo Community</h3>
+                    <div class="relative risk-path p-4 border-2 border-dashed border-gray-300 rounded-lg">
+                        <p class="font-semibold">Phát triển Module Tùy chỉnh</p>
+                    </div>
+                    <div class="relative risk-path p-4 border-2 border-dashed border-gray-300 rounded-lg mt-12">
+                        <p class="font-semibold">Odoo ra phiên bản mới</p>
+                    </div>
+                    <div class="p-4 bg-red-100 text-red-800 rounded-lg mt-12 border-l-4 border-red-500">
+                        <p class="font-extrabold text-lg">Gánh nặng Nâng cấp</p>
+                        <p class="text-sm">Các module tùy chỉnh có thể không tương thích, biến mỗi lần nâng cấp thành một dự án lớn, tốn kém và rủi ro.</p>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-2xl font-bold text-[#ff6361] mb-4">Spring Boot / ReactJS</h3>
+                    <div class="relative risk-path p-4 border-2 border-dashed border-gray-300 rounded-lg">
+                        <p class="font-semibold">"Tái phát minh bánh xe"</p>
+                    </div>
+                    <div class="relative risk-path p-4 border-2 border-dashed border-gray-300 rounded-lg mt-12">
+                        <p class="font-semibold">Phạm vi dự án mở rộng</p>
+                    </div>
+                     <div class="p-4 bg-red-100 text-red-800 rounded-lg mt-12 border-l-4 border-red-500">
+                        <p class="font-extrabold text-lg">Vượt Ngân Sách & Thời Gian</p>
+                        <p class="text-sm">Sự phức tạp của việc xây dựng từ đầu dễ dẫn đến chi phí và thời gian thực tế vượt xa dự kiến ban đầu.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="decision" class="card bg-[#003f5c] text-white">
+            <h2 class="text-3xl font-bold text-center mb-8">Khung Hỗ Trợ Ra Quyết Định</h2>
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center p-4 bg-[#233544] rounded-lg">
+                    <p class="text-xl font-semibold">Ưu tiên số 1 của bạn là gì?</p>
+                </div>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div class="bg-white/10 p-6 rounded-lg text-center">
+                        <h3 class="text-2xl font-bold text-[#ffa600] mb-3">Tối ưu Chi phí & Tốc độ</h3>
+                        <p class="mb-4">"Chúng tôi cần một hệ thống hoạt động nhanh với chi phí thấp nhất và chấp nhận rủi ro kỹ thuật."</p>
+                        <div class="p-3 bg-[#58508d] rounded-lg font-bold text-lg">CHỌN ODOO COMMUNITY</div>
+                    </div>
+                     <div class="bg-white/10 p-6 rounded-lg text-center">
+                        <h3 class="text-2xl font-bold text-[#ffa600] mb-3">Lợi thế Cạnh tranh & Kiểm soát</h3>
+                        <p class="mb-4">"Chúng tôi muốn xây dựng quy trình độc quyền, sẵn sàng đầu tư dài hạn để có khả năng mở rộng tối đa."</p>
+                        <div class="p-3 bg-[#ff6361] rounded-lg font-bold text-lg">CHỌN SPRING / REACT</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        const chartColors = {
+            darkBlue: '#003f5c',
+            purple: '#58508d',
+            magenta: '#bc5090',
+            coral: '#ff6361',
+            orange: '#ffa600',
+            lightGray: '#E2E8F0'
+        };
+
+        const defaultChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: chartColors.darkBlue,
+                        font: { weight: 'bold', size: 14 }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            if (Array.isArray(label)) { return label.join(' '); }
+                            return label;
+                        }
+                    }
+                }
+            }
+        };
+
+        function wrapLabel(str, maxWidth = 16) {
+            if (!str || str.length <= maxWidth) return str;
+            const words = str.split(' ');
+            let lines = [];
+            let currentLine = words[0];
+            for (let i = 1; i < words.length; i++) {
+                if (currentLine.length + words[i].length + 1 < maxWidth) {
+                    currentLine += ' ' + words[i];
+                } else {
+                    lines.push(currentLine);
+                    currentLine = words[i];
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        // Radar Chart
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: [
+                    'Tốc độ ra mắt MVP', 
+                    'Hiệu quả Chi phí (TCO)', 
+                    'Khả năng Mở rộng', 
+                    'An toàn Nâng cấp', 
+                    'Khả năng Tùy chỉnh', 
+                    wrapLabel('Chức năng Có sẵn')
+                ],
+                datasets: [{
+                    label: 'Odoo Community',
+                    data: [9, 8, 5, 2, 9, 4],
+                    backgroundColor: 'rgba(88, 80, 141, 0.2)',
+                    borderColor: chartColors.purple,
+                    pointBackgroundColor: chartColors.purple,
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: chartColors.purple,
+                    borderWidth: 2,
+                }, {
+                    label: 'Spring / ReactJS',
+                    data: [2, 3, 9, 9, 10, 1],
+                    backgroundColor: 'rgba(255, 99, 97, 0.2)',
+                    borderColor: chartColors.coral,
+                    pointBackgroundColor: chartColors.coral,
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: chartColors.coral,
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                 ...defaultChartOptions,
+                 scales: {
+                    r: {
+                        angleLines: { color: chartColors.lightGray },
+                        grid: { color: chartColors.lightGray },
+                        pointLabels: {
+                            color: chartColors.darkBlue,
+                            font: { size: 12, weight: 'bold' }
+                        },
+                        ticks: {
+                            backdropColor: 'rgba(255, 255, 255, 0.75)',
+                            color: chartColors.darkBlue,
+                        },
+                         suggestedMin: 0,
+                         suggestedMax: 10
+                    }
+                }
+            }
+        });
+
+        // TCO Bar Chart
+        const tcoCtx = document.getElementById('tcoChart').getContext('2d');
+        new Chart(tcoCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Odoo Community + Tự phát triển', 'Spring Boot + ReactJS'],
+                datasets: [
+                    {
+                        label: 'Phát triển & Tùy chỉnh ban đầu',
+                        data: [100, 300],
+                        backgroundColor: chartColors.purple,
+                    },
+                    {
+                        label: 'Mua Module Bên thứ 3',
+                        data: [20, 0],
+                        backgroundColor: chartColors.magenta,
+                    },
+                     {
+                        label: 'Bảo trì & Nâng cấp dài hạn',
+                        data: [100, 200],
+                        backgroundColor: chartColors.coral,
+                    },
+                    {
+                        label: 'Hosting & Hạ tầng',
+                        data: [30, 50],
+                        backgroundColor: chartColors.orange,
+                    }
+                ]
+            },
+            options: {
+                ...defaultChartOptions,
+                plugins: {
+                    ...defaultChartOptions.plugins,
+                    title: {
+                        display: true,
+                        text: 'Dự phóng các thành phần chi phí trong 5 năm (đơn vị: nghìn USD)',
+                        font: { size: 16, weight: 'bold' },
+                        color: chartColors.darkBlue,
+                        padding: { bottom: 20 }
+                    }
+                },
+                scales: {
+                    x: { 
+                        stacked: true, 
+                        ticks: { color: chartColors.darkBlue },
+                        grid: { display: false }
+                    },
+                    y: { 
+                        stacked: true, 
+                        ticks: { color: chartColors.darkBlue },
+                        grid: { color: chartColors.lightGray }
+                    }
+                }
+            }
+        });
+
+    </script>
+</body>
+</html>
